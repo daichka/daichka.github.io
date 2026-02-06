@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio | Алиев Кямал</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        pyblue: '#306998',
+                        pyyellow: '#FFD43B',
+                        kotpurple: '#7F52FF',
+                        darkbg: '#0f172a',
+                        cardbg: '#1e293b',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #e2e8f0;
+        }
+        .tech-tag {
+            transition: all 0.3s ease;
+        }
+        .tech-tag:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .project-card {
+            transition: all 0.3s ease;
+        }
+        .project-card:hover {
+            transform: translateY(-5px);
+            border-color: #3b82f6;
+        }
+        .gradient-text {
+            background: linear-gradient(to right, #38bdf8, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        /* Стили для иконок приложений */
+        .app-icon {
+            transition: transform 0.3s ease;
+        }
+        .group:hover .app-icon {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-cyan-500 selection:text-white">
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 bg-darkbg/90 backdrop-blur-md border-b border-gray-800">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex-shrink-0 font-mono font-bold text-xl tracking-tighter">
+                    <span class="text-pyblue">&lt;</span>Aliiev<span class="text-kotpurple">/&gt;</span>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-8">
+                        <a href="#about" class="hover:text-white px-3 py-2 rounded-md text-sm font-medium text-gray-300 transition-colors">Главная</a>
+                        <a href="#stack" class="hover:text-white px-3 py-2 rounded-md text-sm font-medium text-gray-300 transition-colors">Стек</a>
+                        <a href="#apps" class="hover:text-white px-3 py-2 rounded-md text-sm font-medium text-gray-300 transition-colors">Google Play</a>
+                        <a href="#experience" class="hover:text-white px-3 py-2 rounded-md text-sm font-medium text-gray-300 transition-colors">Проекты</a>
+                        <a href="#contact" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">Контакты</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="about" class="pt-32 pb-20 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
+        <div class="text-center md:text-left md:flex md:items-center md:justify-between">
+            <div class="md:w-2/3">
+                <div class="inline-flex items-center px-3 py-1 rounded-full border border-gray-700 bg-gray-800/50 text-xs font-medium text-cyan-400 mb-6">
+                    <span class="w-2 h-2 rounded-full bg-cyan-400 mr-2 animate-pulse"></span>
+                    Available for projects
+                </div>
+                <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight mb-2 text-white">
+                    Алиев Кямал
+                </h1>
+                <h2 class="text-3xl md:text-4xl font-bold mb-6">
+                    <span class="gradient-text">Full-Stack Developer</span>
+                </h2>
+                <p class="mt-4 text-xl text-gray-400 max-w-2xl leading-relaxed">
+                    Python & Kotlin разработчик с 3-летним опытом. Создаю сложные backend-системы, веб-инструменты автоматизации и нативные мобильные приложения. 
+                    <br><span class="text-sm text-gray-500 mt-2 block">Django • FastAPI • Android • Automation • WordPress</span>
+                </p>
+                <div class="mt-8 flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                    <a href="#apps" class="px-8 py-4 bg-white text-darkbg font-bold rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center gap-2">
+                        <i class="fab fa-google-play"></i> Мои Приложения
+                    </a>
+                    <a href="#experience" class="px-8 py-4 border border-gray-700 rounded-lg hover:border-gray-500 hover:bg-gray-800 transition-all flex items-center justify-center">
+                        Мои Проекты
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Code Decoration -->
+            <div class="hidden md:block md:w-1/3 mt-10 md:mt-0 relative">
+                <div class="absolute -inset-1 bg-gradient-to-r from-pyblue to-kotpurple rounded-xl blur opacity-30"></div>
+                <div class="relative bg-cardbg p-6 rounded-xl border border-gray-700 font-mono text-sm shadow-2xl">
+                    <div class="flex gap-2 mb-4">
+                        <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                    </div>
+                    <p class="text-pink-400">class <span class="text-yellow-300">KamalAliiev</span>:</p>
+                    <p class="pl-4 text-gray-300">def <span class="text-blue-400">__init__</span>(self):</p>
+                    <p class="pl-8 text-gray-300">self.backend = [<span class="text-green-400">'Python'</span>, <span class="text-green-400">'FastAPI'</span>]</p>
+                    <p class="pl-8 text-gray-300">self.mobile = [<span class="text-green-400">'Kotlin'</span>, <span class="text-green-400">'Android'</span>]</p>
+                    <p class="pl-8 text-gray-300">self.web = [<span class="text-green-400">'WordPress'</span>, <span class="text-green-400">'JS'</span>]</p>
+                    <p class="pl-8 text-gray-300">self.experience = <span class="text-purple-400">3.5</span> <span class="text-gray-500"># Years</span></p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stack Section -->
+    <section id="stack" class="py-20 bg-gray-900/50">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold mb-12 flex items-center gap-3">
+                <i class="fas fa-layer-group text-cyan-400"></i>
+                <span class="text-white">Технический Стек</span>
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                
+                <!-- Backend & Web -->
+                <div class="bg-cardbg rounded-2xl p-6 border border-gray-800 hover:border-pyblue/50 transition-colors">
+                    <div class="flex items-center gap-3 mb-4">
+                        <i class="fas fa-server text-2xl text-pyyellow"></i>
+                        <h3 class="text-xl font-bold text-white">Backend & Web</h3>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="tech-tag px-2 py-1 bg-gray-800 text-cyan-300 text-xs rounded border border-gray-700">Python 3.11+</span>
+                        <span class="tech-tag px-2 py-1 bg-gray-800 text-cyan-300 text-xs rounded border border-gray-700">FastAPI</span>
+                        <span class="tech-tag px-2 py-1 bg-gray-800 text-cyan-300 text-xs rounded border border-gray-700">Django / DRF</span>
+                        <span class="tech-tag px-2 py-1 bg-gray-800 text-cyan-300 text-xs rounded border border-gray-700">PostgreSQL</span>
+                        <span class="tech-tag px-2 py-1 bg-gray-800 text-cyan-300 text-xs rounded border border-gray-700">WordPress API</span>
+                        <span class="tech-tag px-2 py-1 bg-gray-800 text-cyan-300 text-xs rounded border border-gray-700">Nginx</span>
+                        <span class="tech-tag px-2 py-1 bg-gray-800 text-cyan-300 text-xs rounded border border-gray-700">Docker</span>
+                    </div>
+                </div>
+
+                <!-- Mobile Android -->
+                <div class="bg-cardbg rounded-2xl p-6 border border-gray-800 hover:border-kotpurple/50 transition-colors">
+                    <div class="flex items-center gap-3 mb-4">
+                        <i class="fab fa-android text-2xl text-green-500"></i>
+                        <h3 class="text-xl font-bold text-white">Android Dev</h3>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="tech-tag px-2 py-1 bg-gray-800 text-purple-300 text-xs rounded border border-gray-700">Kotlin</span>
+                        <span class="tech-tag px-2 py-1 bg-gray-800 text-purple-300 text-xs rounded border border-gray-700">Jetpack Compose</span>
+                        <span class="tech-tag px-2 py-1 bg-gray-800 text-purple-300 text-xs rounded border border-gray-700">Coroutines</span>
+                        <span class="tech-tag px-2 py-1 bg-gray-800 text-purple-300 text-xs rounded border border-gray-700">Retrofit 2</span>
+                        <span class="tech-tag px-2 py-1 bg-gray-800 text-purple-300 text-xs rounded border border-gray-700">Room Database</span>
+                        <span class="tech-tag px-2 py-1 bg-gray-800 text-purple-300 text-xs rounded border border-gray-700">MVVM / Clean</span>
+                    </div>
+                </div>
+
+                <!-- Scripts & Tools -->
+                <div class="bg-cardbg rounded-2xl p-6 border border-gray-800 hover:border-red-500/50 transition-colors">
+                    <div class="flex items-center gap-3 mb-4">
+                        <i class="fas fa-robot text-2xl text-red-400"></i>
+                        <h3 class="text-xl font-bold text-white">Scripts & Auto</h3>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="tech-tag px-2 py-1 bg-gray-800 text-pink-300 text-xs rounded border border-gray-700">Aiogram</span>
+                        <span class="tech-tag px-2 py-1 bg-gray-800 text-pink-300 text-xs rounded border border-gray-700">Selenium</span>
+                        <span class="tech-tag px-2 py-1 bg-gray-800 text-pink-300 text-xs rounded border border-gray-700">Pandas</span>
+                        <span class="tech-tag px-2 py-1 bg-gray-800 text-pink-300 text-xs rounded border border-gray-700">BeautifulSoup4</span>
+                        <span class="tech-tag px-2 py-1 bg-gray-800 text-pink-300 text-xs rounded border border-gray-700">Telethon</span>
+                        <span class="tech-tag px-2 py-1 bg-gray-800 text-pink-300 text-xs rounded border border-gray-700">Celery + Redis</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Google Play Section (5 APPS WITH IMAGES) -->
+    <section id="apps" class="py-20 relative overflow-hidden">
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-green-500/5 rounded-full blur-[120px] pointer-events-none"></div>
+
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="text-center mb-16">
+                <span class="text-green-400 font-mono text-sm tracking-wider uppercase">Android Development</span>
+                <h2 class="text-4xl font-bold text-white mt-2">Опубликовано в Google Play</h2>
+                <p class="text-gray-400 mt-4">Мои личные приложения. Полный цикл разработки: от идеи до релиза.</p>
+            </div>
+
+            <!-- Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                
+                <!-- APP 1 -->
+                <div class="bg-gray-800/40 backdrop-blur rounded-xl p-5 border border-gray-700 hover:border-green-500/50 transition-all flex flex-col group">
+                    <div class="mb-4">
+                        <!-- СЮДА ВСТАВЛЯТЬ ССЫЛКУ НА КАРТИНКУ -->
+                        <img src="https://placehold.co/200" alt="Icon 1" class="app-icon w-20 h-20 rounded-2xl shadow-lg border border-gray-700 object-cover">
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">Task Planner Pro</h3>
+                    <p class="text-gray-400 text-xs mb-4 flex-grow">
+                        Удобный планировщик задач с напоминаниями и оффлайн режимом (Room DB).
+                    </p>
+                    <a href="#" class="text-center py-2 rounded bg-white/5 hover:bg-white/10 text-white text-xs font-medium transition-colors border border-white/5">Google Play</a>
+                </div>
+
+                <!-- APP 2 -->
+                <div class="bg-gray-800/40 backdrop-blur rounded-xl p-5 border border-gray-700 hover:border-green-500/50 transition-all flex flex-col group">
+                    <div class="mb-4">
+                         <!-- СЮДА ВСТАВЛЯТЬ ССЫЛКУ НА КАРТИНКУ -->
+                        <img src="https://placehold.co/200" alt="Icon 2" class="app-icon w-20 h-20 rounded-2xl shadow-lg border border-gray-700 object-cover">
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">Currency Converter</h3>
+                    <p class="text-gray-400 text-xs mb-4 flex-grow">
+                        Мультивалютный конвертер с обновлением курсов в реальном времени (Retrofit).
+                    </p>
+                    <a href="#" class="text-center py-2 rounded bg-white/5 hover:bg-white/10 text-white text-xs font-medium transition-colors border border-white/5">Google Play</a>
+                </div>
+
+                <!-- APP 3 -->
+                <div class="bg-gray-800/40 backdrop-blur rounded-xl p-5 border border-gray-700 hover:border-green-500/50 transition-all flex flex-col group">
+                    <div class="mb-4">
+                         <!-- СЮДА ВСТАВЛЯТЬ ССЫЛКУ НА КАРТИНКУ -->
+                        <img src="https://placehold.co/200" alt="Icon 3" class="app-icon w-20 h-20 rounded-2xl shadow-lg border border-gray-700 object-cover">
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">File Manager Lite</h3>
+                    <p class="text-gray-400 text-xs mb-4 flex-grow">
+                        Легкий менеджер файлов для Android. Работа с файловой системой и очистка кэша.
+                    </p>
+                    <a href="#" class="text-center py-2 rounded bg-white/5 hover:bg-white/10 text-white text-xs font-medium transition-colors border border-white/5">Google Play</a>
+                </div>
+
+                <!-- APP 4 -->
+                <div class="bg-gray-800/40 backdrop-blur rounded-xl p-5 border border-gray-700 hover:border-green-500/50 transition-all flex flex-col group">
+                    <div class="mb-4">
+                         <!-- СЮДА ВСТАВЛЯТЬ ССЫЛКУ НА КАРТИНКУ -->
+                        <img src="https://placehold.co/200" alt="Icon 4" class="app-icon w-20 h-20 rounded-2xl shadow-lg border border-gray-700 object-cover">
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">QR & Barcode Scanner</h3>
+                    <p class="text-gray-400 text-xs mb-4 flex-grow">
+                        Сканер кодов с историей сканирования и генератором QR. CameraX API.
+                    </p>
+                    <a href="#" class="text-center py-2 rounded bg-white/5 hover:bg-white/10 text-white text-xs font-medium transition-colors border border-white/5">Google Play</a>
+                </div>
+
+                <!-- APP 5 -->
+                <div class="bg-gray-800/40 backdrop-blur rounded-xl p-5 border border-gray-700 hover:border-green-500/50 transition-all flex flex-col group">
+                    <div class="mb-4">
+                         <!-- СЮДА ВСТАВЛЯТЬ ССЫЛКУ НА КАРТИНКУ -->
+                        <img src="https://placehold.co/200" alt="Icon 5" class="app-icon w-20 h-20 rounded-2xl shadow-lg border border-gray-700 object-cover">
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">Habit Tracker</h3>
+                    <p class="text-gray-400 text-xs mb-4 flex-grow">
+                        Трекер привычек с графиками статистики и темной темой. Jetpack Compose.
+                    </p>
+                    <a href="#" class="text-center py-2 rounded bg-white/5 hover:bg-white/10 text-white text-xs font-medium transition-colors border border-white/5">Google Play</a>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Projects Section (5 PROJECTS) -->
+    <section id="experience" class="py-20 bg-gray-900/50">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold mb-12 border-l-4 border-cyan-500 pl-4">Ключевые Проекты (Freelance)</h2>
+            
+            <div class="relative border-l border-gray-700 ml-3 space-y-12">
+                
+                <!-- Project 1: Taxi -->
+                <div class="relative pl-8">
+                    <div class="absolute -left-[9px] top-0 w-5 h-5 bg-yellow-500 rounded-full border-4 border-gray-900"></div>
+                    <h3 class="text-xl font-bold text-white">Интеграция Яндекс.Такси (Full-Stack)</h3>
+                    <p class="text-sm text-yellow-500 mb-2 font-mono">Python, API Integration, Backend</p>
+                    <p class="text-gray-400">
+                        Разработка "прослойки" между мессенджером и корпоративным API такси. Реализован сложный State-Machine для оформления заказа, расчета стоимости маршрута и выбора тарифа без использования официального приложения.
+                    </p>
+                </div>
+
+                <!-- Project 2: TWA -->
+                <div class="relative pl-8">
+                    <div class="absolute -left-[5px] top-2 w-3 h-3 bg-gray-600 rounded-full"></div>
+                    <h3 class="text-lg font-bold text-white mb-1">Внутренний Корпоративный Портал (TWA)</h3>
+                    <p class="text-sm text-cyan-500 mb-2 font-mono">JavaScript Frontend + FastAPI Backend</p>
+                    <p class="text-gray-400">
+                        Полноценное веб-приложение (Single Page Application), работающее внутри Telegram. Система позволяет сотрудникам заполнять отчеты, видеть график смен и статистику. Бесшовная авторизация через Telegram initData.
+                    </p>
+                </div>
+
+                <!-- Project 3: SMM SaaS -->
+                <div class="relative pl-8">
+                    <div class="absolute -left-[5px] top-2 w-3 h-3 bg-gray-600 rounded-full"></div>
+                    <h3 class="text-lg font-bold text-white mb-1">SMM Платформа Автоматизации</h3>
+                    <p class="text-sm text-purple-400 mb-2 font-mono">Python, Redis, Telethon, Web Admin</p>
+                    <p class="text-gray-400">
+                        Масштабируемая система для управления активностью в соцсетях. Бэкенд управляет сотнями аккаунтов (userbots) через прокси. Включает веб-админку для клиентов, биллинг и очередь задач на базе Celery/Redis.
+                    </p>
+                </div>
+
+                <!-- Project 4: Analytics (New) -->
+                <div class="relative pl-8">
+                    <div class="absolute -left-[5px] top-2 w-3 h-3 bg-gray-600 rounded-full"></div>
+                    <h3 class="text-lg font-bold text-white mb-1">E-commerce Аналитика и Парсинг</h3>
+                    <p class="text-sm text-blue-400 mb-2 font-mono">Python, Pandas, Selenium, PostgreSQL</p>
+                    <p class="text-gray-400">
+                        Скрипт мониторинга цен конкурентов для крупного ритейлера. Ежедневный сбор данных с 5+ маркетплейсов, очистка данных (Pandas), сохранение в БД и генерация Excel-отчетов для отдела закупок.
+                    </p>
+                </div>
+
+                <!-- Project 5: WordPress Integration (New) -->
+                <div class="relative pl-8">
+                    <div class="absolute -left-[5px] top-2 w-3 h-3 bg-gray-600 rounded-full"></div>
+                    <h3 class="text-lg font-bold text-white mb-1">Агрегатор Недвижимости (WordPress + Python)</h3>
+                    <p class="text-sm text-green-400 mb-2 font-mono">WordPress REST API, Python Scripting</p>
+                    <p class="text-gray-400">
+                        Настройка сайта на WordPress и написание внешнего Python-скрипта, который собирает объявления с разных источников и автоматически публикует их на сайте через WP REST API, распределяя по категориям и городам.
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="contact" class="py-12 border-t border-gray-800 text-center">
+        <div class="max-w-4xl mx-auto px-4">
+            <h2 class="text-2xl font-bold text-white mb-6">Связаться со мной</h2>
+            <div class="flex justify-center gap-6 mb-8">
+                <!-- Telegram -->
+                <a href="#" class="w-14 h-14 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-blue-500 hover:text-white transition-all text-2xl shadow-lg border border-gray-700">
+                    <i class="fab fa-telegram-plane"></i>
+                </a>
+                
+                <!-- WhatsApp -->
+                <a href="https://wa.me/79990000000" class="w-14 h-14 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-green-500 hover:text-white transition-all text-2xl shadow-lg border border-gray-700">
+                    <i class="fab fa-whatsapp"></i>
+                </a>
+
+                <!-- Email -->
+                <a href="mailto:email@example.com" class="w-14 h-14 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-red-500 hover:text-white transition-all text-2xl shadow-lg border border-gray-700">
+                    <i class="fas fa-envelope"></i>
+                </a>
+            </div>
+            <p class="text-gray-600 text-sm">
+                &copy; 2024 Алиев Кямал. 
+            </p>
+        </div>
+    </footer>
+
+</body>
+</html>
