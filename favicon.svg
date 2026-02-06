@@ -1,11 +1,11 @@
 <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <!-- Фон: темный, как в твоем портфолио -->
-    <rect width="512" height="512" rx="128" fill="#0f172a"/>
+    <!-- Фон: теперь полностью круглый -->
+    <circle cx="256" cy="256" r="256" fill="#0f172a"/>
     
-    <!-- Градиентная обводка по краю (необязательно, но стильно) -->
-    <rect x="20" y="20" width="472" height="472" rx="108" stroke="url(#border_grad)" stroke-width="15" stroke-opacity="0.3"/>
+    <!-- Градиентная обводка по краю (круглая) -->
+    <circle cx="256" cy="256" r="236" stroke="url(#border_grad)" stroke-width="15" stroke-opacity="0.3"/>
 
-    <!-- Символ: Скобки кода и слеш -->
+    <!-- Символ: Скобки кода и слеш (без изменений, по центру) -->
     <g transform="translate(60, 60) scale(0.77)">
         <!-- Левая скобка < -->
         <path d="M140 360L40 256L140 152" stroke="url(#main_grad)" stroke-width="50" stroke-linecap="round" stroke-linejoin="round"/>
