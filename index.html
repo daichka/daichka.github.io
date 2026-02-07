@@ -12,10 +12,6 @@
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon.svg">
 
-    <!-- PDF Generation Libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-   
     <script>
         tailwind.config = {
             theme: {
@@ -39,6 +35,8 @@
         body {
             background-color: #0f172a;
             color: #e2e8f0;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
         }
         .tech-tag {
             transition: all 0.3s ease;
@@ -67,9 +65,17 @@
         .group:hover .app-icon {
             transform: scale(1.05);
         }
+        
+        /* Специальный класс для кнопок, чтобы текст был по центру в PDF */
+        .btn-center {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
     </style>
 </head>
-<body class="antialiased selection:bg-cyan-500 selection:text-white" id="content-to-pdf">
+<body class="antialiased selection:bg-cyan-500 selection:text-white">
 
     <!-- Navigation -->
     <nav id="navbar" class="fixed w-full z-50 bg-darkbg/90 backdrop-blur-md border-b border-gray-800">
@@ -79,7 +85,6 @@
                     <span class="text-pyblue">&lt;</span>Daicha<span class="text-kotpurple">/&gt;</span>
                 </div>
                 <div class="hidden md:flex items-center">
-                    <!-- ID для JS -->
                     <div id="nav-links" class="ml-10 flex items-baseline space-x-8 nav-links-container">
                         <a href="#about" class="hover:text-white px-3 py-2 rounded-md text-sm font-medium text-gray-300 transition-colors">Главная</a>
                         <a href="#stack" class="hover:text-white px-3 py-2 rounded-md text-sm font-medium text-gray-300 transition-colors">Стек</a>
@@ -87,16 +92,26 @@
                         <a href="#experience" class="hover:text-white px-3 py-2 rounded-md text-sm font-medium text-gray-300 transition-colors">Проекты</a>
                         <a href="#contact" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">Контакты</a>
                     </div>
-                    
-                    <!-- КНОПКА PDF (Только иконка) -->
-                    <button onclick="generatePDF()" id="pdfBtn" class="pdf-btn ml-6 w-10 h-10 rounded-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center transition-all shadow-lg hover:scale-110 hover:shadow-red-500/30 group relative" title="Скачать PDF">
-                        <i id="pdfIcon" class="fas fa-file-pdf text-lg"></i>
+
+                    <!-- PDF Dropdown (Замена старой кнопки) -->
+                    <div id="pdf-download-menu" class="relative ml-6 group">
+                        <button class="w-10 h-10 rounded-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center transition-all shadow-lg hover:scale-110 hover:shadow-red-500/30">
+                            <i class="fas fa-file-pdf text-lg"></i>
+                        </button>
                         
-                        <!-- Tooltip -->
-                        <div class="absolute top-12 right-0 w-32 p-2 bg-gray-800 text-xs text-gray-200 rounded shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none text-center border border-gray-700 z-50">
-                            Скачать резюме
+                        <!-- Выпадающее меню -->
+                        <div class="absolute right-0 top-12 w-48 bg-gray-800 border border-gray-700 rounded-lg shadow-xl invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all transform origin-top-right z-50 overflow-hidden">
+                            <div class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-900/50">
+                                Скачать резюме
+                            </div>
+                            <a href="/Portfolio_Desktop.pdf" download class="block px-4 py-3 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors border-b border-gray-700 flex items-center gap-3">
+                                <i class="fas fa-desktop text-gray-400"></i> Десктопная
+                            </a>
+                            <a href="/Portfolio_Mobile.pdf" download class="block px-4 py-3 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors flex items-center gap-3">
+                                <i class="fas fa-mobile-alt text-gray-400 pl-0.5"></i> Мобильная
+                            </a>
                         </div>
-                    </button>
+                    </div>
 
                 </div>
             </div>
@@ -122,20 +137,18 @@
                     <br><span class="text-sm text-gray-500 mt-2 block">Django • FastAPI • Android • Automation • WordPress</span>
                 </p>
                 
-                <!-- Hero Buttons Container (ID added for PDF hiding) -->
                 <div id="hero-buttons" class="mt-8 flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-                    <a href="#apps" class="px-8 py-4 bg-white text-darkbg font-bold rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center gap-2">
-                        <!-- Текст и иконка приподняты -->
-                        <i class="fab fa-google-play text-xl mb-[2px]"></i> 
-                        <span class="mb-[2px]">Мои Приложения</span>
+                    <a href="#apps" class="btn-center h-14 px-8 bg-white text-darkbg font-bold rounded-lg hover:bg-gray-200 transition-colors gap-2">
+                        <i class="fab fa-google-play text-xl"></i> 
+                        <span class="pt-0.5">Мои Приложения</span>
                     </a>
-                    <a href="#experience" class="px-8 py-4 border border-gray-700 rounded-lg hover:border-gray-500 hover:bg-gray-800 transition-all flex items-center justify-center">
-                        <span class="mb-[2px]">Мои Проекты</span>
+                    <a href="#experience" class="btn-center h-14 px-8 border border-gray-700 rounded-lg hover:border-gray-500 hover:bg-gray-800 transition-all">
+                        <span class="pt-0.5">Мои Проекты</span>
                     </a>
                 </div>
             </div>
              
-            <!-- Code Decoration -->
+            <!-- Code Decoration (Вернули красивый блок кода) -->
             <div class="hidden md:block md:w-1/3 mt-10 md:mt-0 relative">
                 <div class="absolute -inset-1 bg-gradient-to-r from-pyblue to-kotpurple rounded-xl blur opacity-30"></div>
                 <div class="relative bg-cardbg p-6 rounded-xl border border-gray-700 font-mono text-sm shadow-2xl">
@@ -155,7 +168,7 @@
         </div>
     </section>
 
-    <!-- Stack Section -->
+    <!-- Stack Section (Вернули полный стек) -->
     <section id="stack" class="py-20 bg-gray-900/50">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 class="text-3xl font-bold mb-12 flex items-center gap-3">
@@ -218,8 +231,8 @@
         </div>
     </section>
 
-    <!-- Google Play Section (5 APPS WITH IMAGES) -->
-    <section id="apps" class="py-20 relative overflow-hidden">
+    <!-- Google Play Section (Вернули Grid, Блюр и Иконки) -->
+    <section id="apps" class="py-20 relative overflow-visible"> <!-- overflow-visible важно! -->
         <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-green-500/5 rounded-full blur-[120px] pointer-events-none"></div>
 
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -233,102 +246,117 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 
                 <!-- APP 1 -->
-                <div class="bg-gray-800/40 backdrop-blur rounded-xl p-5 border border-gray-700 hover:border-green-500/50 transition-all flex flex-col group">
+                <div class="bg-gray-800/40 backdrop-blur rounded-xl p-5 border border-gray-700 hover:border-green-500/50 transition-all flex flex-col group h-full">
                     <div class="mb-4">
-                        <img src="https://play-lh.googleusercontent.com/8m1W1nuD2clqu0wTenhN2gOktucXbcWEtq1326wmOXOtLKktNeShEFVfD6MUE6Oczqul=w480-h960-rw" crossorigin="anonymous" onerror="this.src='https://placehold.co/200x200/1e293b/white?text=No+Icon'" alt="Icon 1" class="app-icon w-20 h-20 rounded-2xl shadow-lg border border-gray-700 object-cover">
+                        <img src="https://play-lh.googleusercontent.com/8m1W1nuD2clqu0wTenhN2gOktucXbcWEtq1326wmOXOtLKktNeShEFVfD6MUE6Oczqul=w480-h960-rw" 
+                             loading="eager" 
+                             crossorigin="anonymous" 
+                             onerror="this.src='https://placehold.co/200x200/1e293b/white?text=No+Icon'" 
+                             alt="Icon 1" 
+                             class="app-icon w-20 h-20 rounded-2xl shadow-lg border border-gray-700 object-cover">
                     </div>
                     <h3 class="text-lg font-bold text-white mb-2">Ai Chat</h3>
                     <p class="text-gray-400 text-xs mb-4 flex-grow">
-                        «Ai Chat» — это революционный чат-бот с искусственным интеллектом, работающий на API ChatGPT, GPT-3 и GPT-4, Dalle, Dalle APIs.
+                        «Ai Chat» — это революционный чат-бот с искусственным интеллектом, работающий на API ChatGPT, GPT-3 и GPT-4.
                     </p>
-                    <a href="https://play.google.com/store/apps/details?id=com.daicha.gptfree" target="_blank" class="text-center py-2 rounded bg-white/5 hover:bg-white/10 text-white text-xs font-medium transition-colors border border-white/5">Google Play</a>
+                    <a href="https://play.google.com/store/apps/details?id=com.daicha.gptfree" target="_blank" class="btn-center w-full py-2 rounded bg-white/5 hover:bg-white/10 text-white text-xs font-medium transition-colors border border-white/5">
+                        Google Play
+                    </a>
                 </div>
 
                 <!-- APP 2 -->
-                <div class="bg-gray-800/40 backdrop-blur rounded-xl p-5 border border-gray-700 hover:border-green-500/50 transition-all flex flex-col group">
+                <div class="bg-gray-800/40 backdrop-blur rounded-xl p-5 border border-gray-700 hover:border-green-500/50 transition-all flex flex-col group h-full">
                     <div class="mb-4">
-                         <img src="https://play-lh.googleusercontent.com/6bVps4Ke8KKsHQcGlwGGXqTIRivg42aPKFjgcDP0p5Ss57zNmYiV4G7sNCXxKLiBng=w480-h960-rw" crossorigin="anonymous" onerror="this.src='https://placehold.co/200x200/1e293b/white?text=No+Icon'" alt="Icon 2" class="app-icon w-20 h-20 rounded-2xl shadow-lg border border-gray-700 object-cover">
+                         <img src="https://play-lh.googleusercontent.com/6bVps4Ke8KKsHQcGlwGGXqTIRivg42aPKFjgcDP0p5Ss57zNmYiV4G7sNCXxKLiBng=w480-h960-rw" 
+                              loading="eager" 
+                              crossorigin="anonymous" 
+                              onerror="this.src='https://placehold.co/200x200/1e293b/white?text=No+Icon'" 
+                              alt="Icon 2" 
+                              class="app-icon w-20 h-20 rounded-2xl shadow-lg border border-gray-700 object-cover">
                     </div>
                     <h3 class="text-lg font-bold text-white mb-2">Конвертер валют</h3>
                     <p class="text-gray-400 text-xs mb-4 flex-grow">
                         Мультивалютный конвертер, с курсами, как валют так и крипты.
                     </p>
-                    <a href="https://play.google.com/store/apps/details?id=com.offlineconverter085.converter" target="_blank" class="text-center py-2 rounded bg-white/5 hover:bg-white/10 text-white text-xs font-medium transition-colors border border-white/5">Google Play</a>
+                    <a href="https://play.google.com/store/apps/details?id=com.offlineconverter085.converter" target="_blank" class="btn-center w-full py-2 rounded bg-white/5 hover:bg-white/10 text-white text-xs font-medium transition-colors border border-white/5">
+                        Google Play
+                    </a>
                 </div>
 
                 <!-- APP 3 -->
-                <div class="bg-gray-800/40 backdrop-blur rounded-xl p-5 border border-gray-700 hover:border-green-500/50 transition-all flex flex-col group">
+                <div class="bg-gray-800/40 backdrop-blur rounded-xl p-5 border border-gray-700 hover:border-green-500/50 transition-all flex flex-col group h-full">
                     <div class="mb-4">
-                         <img src="https://play-lh.googleusercontent.com/5KF8hew2TbNkPSsDFuZn3VqmNg_cJmLGxMTEZaVqtgR2hEXes7ixmilv2mYkGH6SivYi=w480-h960-rw" crossorigin="anonymous" onerror="this.src='https://placehold.co/200x200/1e293b/white?text=No+Icon'" alt="Icon 3" class="app-icon w-20 h-20 rounded-2xl shadow-lg border border-gray-700 object-cover">
+                         <img src="https://play-lh.googleusercontent.com/5KF8hew2TbNkPSsDFuZn3VqmNg_cJmLGxMTEZaVqtgR2hEXes7ixmilv2mYkGH6SivYi=w480-h960-rw" 
+                              loading="eager" 
+                              crossorigin="anonymous" 
+                              onerror="this.src='https://placehold.co/200x200/1e293b/white?text=No+Icon'" 
+                              alt="Icon 3" 
+                              class="app-icon w-20 h-20 rounded-2xl shadow-lg border border-gray-700 object-cover">
                     </div>
                     <h3 class="text-lg font-bold text-white mb-2">Заметки</h3>
                     <p class="text-gray-400 text-xs mb-4 flex-grow">
                         Просто приложение для заметок и списков.
                     </p>
-                    <a href="https://play.google.com/store/apps/details?id=com.daichasimplenotes.notes" target="_blank" class="text-center py-2 rounded bg-white/5 hover:bg-white/10 text-white text-xs font-medium transition-colors border border-white/5">Google Play</a>
+                    <a href="https://play.google.com/store/apps/details?id=com.daichasimplenotes.notes" target="_blank" class="btn-center w-full py-2 rounded bg-white/5 hover:bg-white/10 text-white text-xs font-medium transition-colors border border-white/5">
+                        Google Play
+                    </a>
                 </div>
 
             </div>
         </div>
     </section>
 
-    <!-- Projects Section (5 PROJECTS) -->
+    <!-- Projects Section -->
     <section id="experience" class="py-20 bg-gray-900/50">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 class="text-3xl font-bold mb-12 border-l-4 border-cyan-500 pl-4">Ключевые Проекты (Freelance)</h2>
             
             <div class="relative border-l border-gray-700 ml-3 space-y-12">
-                
-                <!-- Project 1: Taxi -->
+                <!-- Project 1 -->
                 <div class="relative pl-8">
                     <div class="absolute -left-[9px] top-0 w-5 h-5 bg-yellow-500 rounded-full border-4 border-gray-900"></div>
                     <h3 class="text-xl font-bold text-white">Интеграция Яндекс.Такси (Full-Stack)</h3>
                     <p class="text-sm text-yellow-500 mb-2 font-mono">Python, API Integration, Backend</p>
                     <p class="text-gray-400">
-                        Разработка "прослойки" между мессенджером и корпоративным API такси. Реализован сложный State-Machine для оформления заказа, расчета стоимости маршрута и выбора тарифа без использования официального приложения.
+                        Разработка "прослойки" между мессенджером и корпоративным API такси. Реализован сложный State-Machine.
                     </p>
                 </div>
-
-                <!-- Project 2: TWA -->
+                <!-- Project 2 -->
                 <div class="relative pl-8">
                     <div class="absolute -left-[5px] top-2 w-3 h-3 bg-gray-600 rounded-full"></div>
                     <h3 class="text-lg font-bold text-white mb-1">Внутренний Корпоративный Портал (TWA)</h3>
                     <p class="text-sm text-cyan-500 mb-2 font-mono">JavaScript Frontend + FastAPI Backend</p>
                     <p class="text-gray-400">
-                        Полноценное веб-приложение (Single Page Application), работающее внутри Telegram. Система позволяет сотрудникам заполнять отчеты, видеть график смен и статистику. Бесшовная авторизация через Telegram initData.
+                        Веб-приложение внутри Telegram. Система позволяет сотрудникам заполнять отчеты и видеть график смен.
                     </p>
                 </div>
-
-                <!-- Project 3: SMM SaaS -->
+                <!-- Project 3 -->
                 <div class="relative pl-8">
                     <div class="absolute -left-[5px] top-2 w-3 h-3 bg-gray-600 rounded-full"></div>
                     <h3 class="text-lg font-bold text-white mb-1">SMM Платформа Автоматизации</h3>
-                    <p class="text-sm text-purple-400 mb-2 font-mono">Python, Redis, Telethon, Web Admin</p>
+                    <p class="text-sm text-purple-400 mb-2 font-mono">Python, Redis, Telethon</p>
                     <p class="text-gray-400">
-                        Масштабируемая система для управления активностью в соцсетях. Бэкенд управляет сотнями аккаунтов (userbots) через прокси. Включает веб-админку для клиентов, биллинг и очередь задач на базе Celery/Redis.
+                        Масштабируемая система для управления активностью в соцсетях. Бэкенд управляет сотнями аккаунтов.
                     </p>
                 </div>
-
-                <!-- Project 4: Analytics (New) -->
+                <!-- Project 4 -->
                 <div class="relative pl-8">
                     <div class="absolute -left-[5px] top-2 w-3 h-3 bg-gray-600 rounded-full"></div>
-                    <h3 class="text-lg font-bold text-white mb-1">E-commerce Аналитика и Парсинг</h3>
-                    <p class="text-sm text-blue-400 mb-2 font-mono">Python, Pandas, Selenium, PostgreSQL</p>
+                    <h3 class="text-lg font-bold text-white mb-1">E-commerce Аналитика</h3>
+                    <p class="text-sm text-blue-400 mb-2 font-mono">Python, Pandas, Selenium</p>
                     <p class="text-gray-400">
-                        Скрипт мониторинга цен конкурентов для крупного ритейлера. Ежедневный сбор данных с 5+ маркетплейсов, очистка данных (Pandas), сохранение в БД и генерация Excel-отчетов для отдела закупок.
+                        Скрипт мониторинга цен конкурентов. Сбор данных с маркетплейсов, очистка и сохранение в БД.
                     </p>
                 </div>
-
-                <!-- Project 5: WordPress Integration (New) -->
+                <!-- Project 5 -->
                 <div class="relative pl-8">
                     <div class="absolute -left-[5px] top-2 w-3 h-3 bg-gray-600 rounded-full"></div>
-                    <h3 class="text-lg font-bold text-white mb-1">Агрегатор Недвижимости (WordPress + Python)</h3>
-                    <p class="text-sm text-green-400 mb-2 font-mono">WordPress REST API, Python Scripting</p>
+                    <h3 class="text-lg font-bold text-white mb-1">Агрегатор Недвижимости</h3>
+                    <p class="text-sm text-green-400 mb-2 font-mono">WordPress REST API, Python</p>
                     <p class="text-gray-400">
-                        Настройка сайта на WordPress и написание внешнего Python-скрипта, который собирает объявления с разных источников и автоматически публикует их на сайте через WP REST API, распределяя по категориям и городам.
+                        Python-скрипт, который собирает объявления и публикует их на сайте через WP REST API.
                     </p>
                 </div>
-
             </div>
         </div>
     </section>
@@ -338,19 +366,15 @@
         <div class="max-w-4xl mx-auto px-4">
             <h2 class="text-2xl font-bold text-white mb-8">Связаться со мной</h2>
             <div class="flex justify-center gap-8 mb-8">
-                <!-- Telegram -->
-                <a href="https://t.me/daichitakedakz" target="_blank" class="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-blue-500 hover:text-white transition-all text-2xl shadow-lg border border-gray-700 hover:scale-110">
-                    <i class="fab fa-telegram-plane leading-none mb-1"></i>
+                <!-- Убрали pb-1, так как теперь центрируется классом btn-center -->
+                <a href="https://t.me/daichitakedakz" target="_blank" class="w-12 h-12 rounded-full bg-gray-800 btn-center text-gray-400 hover:bg-blue-500 hover:text-white transition-all text-2xl shadow-lg border border-gray-700 hover:scale-110">
+                    <i class="fab fa-telegram-plane"></i>
                 </a>
-                
-                <!-- WhatsApp -->
-                <a href="https://wa.me/+77012439738" target="_blank" class="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-green-500 hover:text-white transition-all text-2xl shadow-lg border border-gray-700 hover:scale-110">
-                    <i class="fab fa-whatsapp leading-none mb-1"></i>
+                <a href="https://wa.me/+77012439738" target="_blank" class="w-12 h-12 rounded-full bg-gray-800 btn-center text-gray-400 hover:bg-green-500 hover:text-white transition-all text-2xl shadow-lg border border-gray-700 hover:scale-110">
+                    <i class="fab fa-whatsapp"></i>
                 </a>
-
-                <!-- Email -->
-                <a href="mailto:daichaapps@gmail.com" class="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-red-500 hover:text-white transition-all text-2xl shadow-lg border border-gray-700 hover:scale-110">
-                    <i class="fas fa-envelope leading-none mb-1"></i>
+                <a href="mailto:daichaapps@gmail.com" class="w-12 h-12 rounded-full bg-gray-800 btn-center text-gray-400 hover:bg-red-500 hover:text-white transition-all text-2xl shadow-lg border border-gray-700 hover:scale-110">
+                    <i class="fas fa-envelope"></i>
                 </a>
             </div>
             <p class="text-gray-600 text-sm">
@@ -359,129 +383,5 @@
         </div>
     </footer>
 
-    <!-- PDF Generation Logic -->
-    <script>
-        window.jsPDF = window.jspdf.jsPDF;
-
-        async function generatePDF() {
-            const btn = document.getElementById('pdfBtn');
-            const icon = document.getElementById('pdfIcon');
-            const navbar = document.getElementById('navbar');
-            const navLinks = document.getElementById('nav-links'); // Меню ссылок
-            const heroButtons = document.getElementById('hero-buttons'); // Кнопки "Мои Приложения"
-            const body = document.body;
-            const heroTitle = document.getElementById('hero-title-text');
-
-            // 1. UI Feedback: Show Spinner
-            const originalIconClass = icon.className;
-            icon.className = 'fas fa-spinner fa-spin text-lg';
-            btn.disabled = true;
-
-            try {
-                // 2. Prepare Viewport
-                // Temporarily hide the PDF button from the screenshot
-                btn.style.visibility = 'hidden';
-                
-                // Hide Nav Links & Hero Buttons visually (using opacity so layout stays same)
-                navLinks.style.opacity = '0';
-                heroButtons.style.opacity = '0';
-
-                // FIX GRADIENT TEXT (remove gradient for capture)
-                const originalGradientStyle = heroTitle.style.cssText;
-                heroTitle.style.background = 'none';
-                heroTitle.style.webkitTextFillColor = '#818cf8'; // Solid color fallback
-                heroTitle.style.color = '#818cf8';
-                
-                // Fix Navbar for capture (absolute position instead of fixed)
-                const originalNavClass = navbar.className;
-                navbar.classList.remove('fixed');
-                navbar.classList.add('absolute');
-                
-                // Scroll to top to ensure clean capture
-                window.scrollTo(0, 0);
-
-                // 3. CAPTURE SCREENSHOT (Solves Cyrillic/Font Issues)
-                const canvas = await html2canvas(body, {
-                    useCORS: true,       // Load cross-origin images (Google Play)
-                    allowTaint: true,
-                    scale: 2,            // Retina quality
-                    logging: false,
-                    scrollY: 0,
-                    windowWidth: document.documentElement.scrollWidth, // Full width
-                    windowHeight: document.documentElement.scrollHeight // Full height
-                });
-
-                // 4. SETUP PDF
-                // We create a PDF that matches the aspect ratio of the site content
-                // A4 Width is approx 595.28 pt. We map the canvas width to this.
-                const pdfWidth = 595.28; 
-                const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-                
-                // Create single long page PDF
-                const doc = new jsPDF({
-                    orientation: 'p',
-                    unit: 'pt',
-                    format: [pdfWidth, pdfHeight] // Custom format
-                });
-
-                // 5. ADD IMAGE
-                const imgData = canvas.toDataURL('image/jpeg', 0.95); // Slightly compressed JPEG for size
-                doc.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-
-                // 6. RE-ADD LINKS (Solves Broken Buttons Issue)
-                const links = document.querySelectorAll('a[href]');
-                
-                links.forEach(link => {
-                    const rect = link.getBoundingClientRect();
-                    
-                    // Filter out hidden or zero-size links
-                    // Also check if link is inside the hidden sections (navLinks or heroButtons)
-                    // We can check opacity of parent, or just visual check
-                    const computedStyle = window.getComputedStyle(link);
-                    if (computedStyle.opacity === '0' || computedStyle.display === 'none' || computedStyle.visibility === 'hidden') {
-                        return; // Skip hidden links
-                    }
-                    // Explicit check for parents if opacity is inherited
-                    if (navLinks.contains(link) || heroButtons.contains(link)) {
-                         return;
-                    }
-
-                    if (rect.width > 0 && rect.height > 0) {
-                        // Calculate coordinates relative to the top of the document
-                        const x = (rect.left + window.scrollX) * (pdfWidth / document.documentElement.scrollWidth);
-                        const y = (rect.top + window.scrollY) * (pdfWidth / document.documentElement.scrollWidth);
-                        const w = rect.width * (pdfWidth / document.documentElement.scrollWidth);
-                        const h = rect.height * (pdfWidth / document.documentElement.scrollWidth);
-
-                        // Add the link to PDF
-                        doc.link(x, y, w, h, { url: link.href });
-                    }
-                });
-
-                // 7. Save
-                doc.save('Portfolio_Kamal_Aliev.pdf');
-
-            } catch (error) {
-                console.error("PDF Generation Error:", error);
-                alert("Ошибка генерации. Проверьте консоль.");
-            } finally {
-                // 8. Restore UI INSTANTLY
-                navbar.className = originalNavClass;
-                btn.style.visibility = 'visible';
-                icon.className = originalIconClass;
-                btn.disabled = false;
-                
-                // Restore Opacity - FORCE RESET
-                navLinks.style.opacity = '';
-                heroButtons.style.opacity = '';
-                
-                // Restore Gradient
-                heroTitle.style.cssText = originalGradientStyle;
-                heroTitle.style.background = ''; // Clear inline override
-                heroTitle.style.webkitTextFillColor = '';
-                heroTitle.style.color = '';
-            }
-        }
-    </script>
 </body>
 </html>
