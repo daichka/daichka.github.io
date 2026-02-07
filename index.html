@@ -80,7 +80,7 @@
                 </div>
                 <div class="hidden md:flex items-center">
                     <!-- ID для JS -->
-                    <div id="nav-links" class="ml-10 flex items-baseline space-x-8 nav-links-container">
+                    <div id="nav-links" class="ml-10 flex items-baseline space-x-8 nav-links-container transition-opacity duration-300">
                         <a href="#about" class="hover:text-white px-3 py-2 rounded-md text-sm font-medium text-gray-300 transition-colors">Главная</a>
                         <a href="#stack" class="hover:text-white px-3 py-2 rounded-md text-sm font-medium text-gray-300 transition-colors">Стек</a>
                         <a href="#apps" class="hover:text-white px-3 py-2 rounded-md text-sm font-medium text-gray-300 transition-colors">Google Play</a>
@@ -123,12 +123,14 @@
                 </p>
                 
                 <!-- Hero Buttons Container (ID added for PDF hiding) -->
-                <div id="hero-buttons" class="mt-8 flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                <div id="hero-buttons" class="mt-8 flex flex-col sm:flex-row gap-4 justify-center md:justify-start transition-opacity duration-300">
                     <a href="#apps" class="px-8 py-4 bg-white text-darkbg font-bold rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center gap-2">
-                        <i class="fab fa-google-play leading-none"></i> <span class="leading-none">Мои Приложения</span>
+                        <!-- Добавил mb-[2px] для поднятия -->
+                        <i class="fab fa-google-play text-xl mb-[2px]"></i> 
+                        <span class="mb-[2px]">Мои Приложения</span>
                     </a>
                     <a href="#experience" class="px-8 py-4 border border-gray-700 rounded-lg hover:border-gray-500 hover:bg-gray-800 transition-all flex items-center justify-center">
-                        <span class="leading-none">Мои Проекты</span>
+                        <span class="mb-[2px]">Мои Проекты</span>
                     </a>
                 </div>
             </div>
@@ -338,17 +340,20 @@
             <div class="flex justify-center gap-8 mb-8">
                 <!-- Telegram -->
                 <a href="https://t.me/daichitakedakz" target="_blank" class="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-blue-500 hover:text-white transition-all text-2xl shadow-lg border border-gray-700 hover:scale-110">
-                    <i class="fab fa-telegram-plane leading-none"></i>
+                    <!-- Добавил mb-1 для поднятия -->
+                    <i class="fab fa-telegram-plane leading-none mb-1"></i>
                 </a>
                 
                 <!-- WhatsApp -->
                 <a href="https://wa.me/+77012439738" target="_blank" class="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-green-500 hover:text-white transition-all text-2xl shadow-lg border border-gray-700 hover:scale-110">
-                    <i class="fab fa-whatsapp leading-none"></i>
+                     <!-- Добавил mb-1 для поднятия -->
+                    <i class="fab fa-whatsapp leading-none mb-1"></i>
                 </a>
 
                 <!-- Email -->
                 <a href="mailto:daichaapps@gmail.com" class="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-red-500 hover:text-white transition-all text-2xl shadow-lg border border-gray-700 hover:scale-110">
-                    <i class="fas fa-envelope leading-none"></i>
+                     <!-- Добавил mb-1 для поднятия -->
+                    <i class="fas fa-envelope leading-none mb-1"></i>
                 </a>
             </div>
             <p class="text-gray-600 text-sm">
@@ -469,9 +474,9 @@
                 icon.className = originalIconClass;
                 btn.disabled = false;
                 
-                // Restore Opacity
-                navLinks.style.opacity = '1';
-                heroButtons.style.opacity = '1';
+                // Restore Opacity - FORCE RESET
+                navLinks.style.opacity = '';
+                heroButtons.style.opacity = '';
                 
                 // Restore Gradient
                 heroTitle.style.cssText = originalGradientStyle;
