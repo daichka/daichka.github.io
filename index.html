@@ -359,5 +359,17 @@
 
     </main>
 
+    <!-- Скрипт для скрытия выпадающего меню после клика -->
+    <script>
+        document.querySelectorAll('#pdf-download-menu a, #pdf-download-menu-mobile a').forEach(link => {
+            link.addEventListener('click', () => {
+                // Снимаем фокус с активного элемента, чтобы закрыть меню
+                if (document.activeElement) {
+                    document.activeElement.blur();
+                }
+            });
+        });
+    </script>
+
 </body>
 </html>
