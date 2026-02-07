@@ -1,842 +1,485 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import {
-    Button, Modal, Form, Input, message, Card,
-    Space, Typography, Divider, Layout, Tag, Tooltip, InputNumber, Checkbox, Empty, Upload, Tabs, Select, Table, Progress, Switch
-} from 'antd';
-import {
-    PlusOutlined, DeleteOutlined,
-    PictureOutlined, ArrowLeftOutlined, ArrowRightOutlined,
-    CloudSyncOutlined, CheckCircleOutlined,
-    GlobalOutlined, FileTextOutlined, QuestionCircleOutlined,
-    YoutubeOutlined, UploadOutlined, VideoCameraAddOutlined,
-    BoldOutlined, ItalicOutlined, UnderlineOutlined, StrikethroughOutlined,
-    OrderedListOutlined, UnorderedListOutlined, LinkOutlined, UndoOutlined, RedoOutlined,
-    AlignLeftOutlined, AlignCenterOutlined, AlignRightOutlined, BookOutlined, UserOutlined, TrophyOutlined, DownloadOutlined,
-    SettingOutlined, PlayCircleOutlined, HolderOutlined, ReloadOutlined, ExpandOutlined, FileImageOutlined, EditOutlined,
-    FileAddOutlined, FormOutlined, StopOutlined, DragOutlined, LinkOutlined as LinkIcon, LaptopOutlined,
-    AppstoreOutlined, ProjectOutlined // Новые иконки
-} from '@ant-design/icons';
-import axios from 'axios';
-import { jsPDF } from "jspdf";
-import html2canvas from 'html2canvas';
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio | Алиев Кямал</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.svg">
 
-// --- TIPTAP IMPORTS ---
-import { useEditor, EditorContent } from '@tiptap/react';
-import { Editor, Node, Extension, mergeAttributes } from '@tiptap/core';
-import StarterKit from '@tiptap/starter-kit';
-import Image from '@tiptap/extension-image';
-import Youtube from '@tiptap/extension-youtube';
-import Underline from '@tiptap/extension-underline';
-import Link from '@tiptap/extension-link';
-import Placeholder from '@tiptap/extension-placeholder';
-import TextAlign from '@tiptap/extension-text-align';
-import { TextStyle } from '@tiptap/extension-text-style';
-
-const { Title, Text, Paragraph } = Typography;
-const { Header, Sider, Content } = Layout;
-
-const colors = { dark: '#121921', blue: '#182e4e', accent: '#00ccff', green: '#28a745', red: '#ff4d4f', lightBg: '#f0f2f5' };
-
-// --- HELPER: SAFE PARSE ---
-const safeParse = (data: any, fallback: any) => {
-    try {
-        if (typeof data === 'string') return JSON.parse(data);
-        return data || fallback;
-    } catch (e) { return fallback; }
-};
-
-// --- HELPER: RESIZER LOGIC (Native DOM) ---
-const createResizableNode = (type: 'image' | 'video' | 'youtube', src: string, initialWidth: string, updateAttributes: any) => {
-    const container = document.createElement('div');
-    container.className = 'node-resizable-container';
-    container.style.position = 'relative';
-    container.style.display = 'inline-block';
-    container.style.margin = '10px';
-    container.style.maxWidth = '100%';
-    container.style.width = initialWidth || '400px'; 
-    container.style.transition = 'none';
-    container.style.border = '2px solid transparent'; 
-
-    container.onmouseenter = () => { container.style.border = `2px dashed ${colors.accent}`; };
-    container.onmouseleave = () => { container.style.border = '2px solid transparent'; };
-
-    let contentNode: HTMLElement;
-
-    if (type === 'video') {
-        const video = document.createElement('video');
-        video.src = src;
-        video.controls = true;
-        video.style.width = '100%';
-        video.style.height = 'auto';
-        video.style.borderRadius = '8px';
-        video.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
-        video.ondragstart = (e) => e.preventDefault(); 
-        contentNode = video;
-    } else if (type === 'youtube') {
-        const iframeWrapper = document.createElement('div');
-        iframeWrapper.style.position = 'relative';
-        iframeWrapper.style.paddingBottom = '56.25%';
-        iframeWrapper.style.height = '0';
-        iframeWrapper.style.background = '#000';
-        iframeWrapper.style.borderRadius = '8px';
-        
-        const iframe = document.createElement('iframe');
-        iframe.src = src;
-        iframe.style.position = 'absolute';
-        iframe.style.top = '0';
-        iframe.style.left = '0';
-        iframe.style.width = '100%';
-        iframe.style.height = '100%';
-        iframe.style.borderRadius = '8px';
-        iframe.style.border = 'none';
-        iframe.allowFullscreen = true;
-        iframe.style.pointerEvents = 'none';
-        
-        const overlay = document.createElement('div');
-        overlay.style.position = 'absolute';
-        overlay.style.top = '0';
-        overlay.style.left = '0';
-        overlay.style.width = '100%';
-        overlay.style.height = '100%';
-        overlay.style.cursor = 'pointer';
-        overlay.title = 'Нажмите для воспроизведения';
-        overlay.onclick = () => { overlay.style.display = 'none'; iframe.style.pointerEvents = 'auto'; };
-        
-        iframeWrapper.appendChild(iframe);
-        iframeWrapper.appendChild(overlay);
-        contentNode = iframeWrapper;
-    } else {
-        const img = document.createElement('img');
-        img.src = src;
-        img.style.width = '100%';
-        img.style.height = 'auto';
-        img.style.borderRadius = '8px';
-        img.style.display = 'block';
-        img.ondragstart = (e) => e.preventDefault();
-        contentNode = img;
-    }
-
-    container.appendChild(contentNode);
-
-    const resizer = document.createElement('div');
-    resizer.className = 'resizer-handle';
-    resizer.style.width = '16px';
-    resizer.style.height = '16px';
-    resizer.style.background = colors.accent;
-    resizer.style.position = 'absolute';
-    resizer.style.right = '-8px';
-    resizer.style.bottom = '-8px';
-    resizer.style.cursor = 'nwse-resize';
-    resizer.style.borderRadius = '50%';
-    resizer.style.border = '2px solid white';
-    resizer.style.zIndex = '10';
-    resizer.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
-
-    resizer.onmousedown = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        const startX = e.clientX;
-        const startWidth = container.offsetWidth;
-
-        const onMouseMove = (moveEvent: MouseEvent) => {
-            const newWidth = startWidth + (moveEvent.clientX - startX);
-            if (newWidth > 150 && newWidth < 1200) {
-                container.style.width = `${newWidth}px`;
-            }
-        };
-
-        const onMouseUp = () => {
-            updateAttributes({ width: container.style.width });
-            document.removeEventListener('mousemove', onMouseMove);
-            document.removeEventListener('mouseup', onMouseUp);
-        };
-
-        document.addEventListener('mousemove', onMouseMove);
-        document.addEventListener('mouseup', onMouseUp);
-    };
-
-    container.appendChild(resizer);
-    return container;
-};
-
-// --- EXTENSIONS ---
-
-const FontSize = Extension.create({
-    name: 'fontSize',
-    addOptions() { return { types: ['textStyle'] } },
-    addGlobalAttributes() {
-        return [{
-            types: this.options.types,
-            attributes: {
-                fontSize: {
-                    default: null,
-                    parseHTML: element => element.style.fontSize.replace('px', ''),
-                    renderHTML: attributes => {
-                        if (!attributes.fontSize) return {};
-                        return { style: `font-size: ${attributes.fontSize}px` };
+    <!-- PDF Generation Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+   
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
                     },
-                },
-            },
-        }]
-    },
-    addCommands() {
-        return {
-            setFontSize: (fontSize) => ({ chain }) => chain().setMark('textStyle', { fontSize: fontSize + "px" }).run(),
-            unsetFontSize: () => ({ chain }) => chain().setMark('textStyle', { fontSize: null }).run(),
-        }
-    },
-});
-
-const VideoExtension = Node.create({
-    name: 'video',
-    group: 'block',
-    selectable: true,
-    draggable: true,
-    atom: true,
-    addAttributes() {
-        return {
-            src: { default: null },
-            width: { default: '400px' },
-            align: { default: 'center' }
-        }
-    },
-    parseHTML() { return [{ tag: 'video' }] },
-    renderHTML({ HTMLAttributes }) {
-        return ['div', { class: 'video-wrapper', style: `text-align: ${HTMLAttributes.align};` },
-            ['video', mergeAttributes(HTMLAttributes, { controls: 'true', style: `width: ${HTMLAttributes.width};` })]
-        ]
-    },
-    addNodeView() {
-        return ({ node, updateAttributes }: any) => {
-            const dom = document.createElement('div');
-            dom.style.textAlign = node.attrs.align;
-            const resizable = createResizableNode('video', node.attrs.src, node.attrs.width, updateAttributes);
-            dom.appendChild(resizable);
-            return { dom };
-        }
-    }
-});
-
-const ResizableImage = Image.extend({
-    draggable: true,
-    addAttributes() {
-        return {
-            ...this.parent?.(),
-            width: { default: '400px' },
-            align: { default: 'center' },
-        }
-    },
-    addNodeView() {
-        return ({ node, updateAttributes }: any) => {
-            const dom = document.createElement('div');
-            dom.style.textAlign = node.attrs.align;
-            dom.style.clear = 'both';
-            const resizable = createResizableNode('image', node.attrs.src, node.attrs.width, updateAttributes);
-            dom.appendChild(resizable);
-            return { dom };
-        }
-    }
-});
-
-const ResizableYoutube = Youtube.extend({
-    draggable: true,
-    addAttributes() {
-        return {
-            ...this.parent?.(),
-            width: { default: '400px' },
-            align: { default: 'center' },
-        }
-    },
-    addNodeView() {
-        return ({ node, updateAttributes }: any) => {
-            const dom = document.createElement('div');
-            dom.style.textAlign = node.attrs.align;
-            const resizable = createResizableNode('youtube', node.attrs.src, node.attrs.width, updateAttributes);
-            dom.appendChild(resizable);
-            return { dom };
-        }
-    }
-});
-
-// --- EDITOR COMPONENT ---
-const TiptapEditor = ({ content, onChange, onImageRequest, onVideoRequest, placeholder = "Начните писать..." }: any) => {
-    const editor = useEditor({
-        extensions: [
-            StarterKit,
-            Underline, 
-            TextStyle, 
-            FontSize,
-            TextAlign.configure({ types: ['heading', 'paragraph', 'image', 'video'] }),
-            Link.configure({ openOnClick: false }),
-            ResizableImage,
-            ResizableYoutube.configure({ controls: false }),
-            VideoExtension,
-            Placeholder.configure({ placeholder }),
-        ],
-        content: content,
-        onUpdate: ({ editor }) => {
-            onChange(editor.getHTML());
-        },
-        editorProps: { attributes: { class: 'tiptap-editor-content' } },
-    }, []);
-
-    if (!editor) return null;
-
-    const isActive = (name: string, attrs?: any) => editor.isActive(name, attrs) ? 'primary' : 'default';
-    const isAlign = (a: string) => editor.isActive({ textAlign: a }) ? 'primary' : 'default';
-
-    // Получаем текущий размер шрифта
-    const currentFontSize = editor.getAttributes('textStyle').fontSize 
-        ? editor.getAttributes('textStyle').fontSize.replace('px', '') 
-        : '16'; 
-
-    const fontSizes = [10, 12, 14, 16, 18, 20, 24, 30, 36, 48, 72];
-
-    return (
-        <div style={{ border: '1px solid #d9d9d9', borderRadius: 8, overflow: 'hidden', background: '#fff', display: 'flex', flexDirection: 'column', height: '100%', minHeight: '600px' }}>
-            {/* TOOLBAR */}
-            <div style={{ padding: '8px', background: '#fafafa', borderBottom: '1px solid #eee', display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-                
-                {/* Font Size Select */}
-                <Select
-                    size="small"
-                    style={{ width: 80 }}
-                    placeholder="Размер"
-                    value={currentFontSize}
-                    onSelect={(value) => {
-                        editor.chain().focus().setFontSize(String(value)).run();
-                    }}
-                    options={fontSizes.map(s => ({ label: s, value: s }))}
-                    onDropdownVisibleChange={(open) => { if(!open) setTimeout(() => editor.commands.focus(), 10); }}
-                />
-
-                <Divider type="vertical" />
-                <Button size="small" type={isActive('bold')} icon={<BoldOutlined />} onClick={() => editor.chain().focus().toggleBold().run()} />
-                <Button size="small" type={isActive('italic')} icon={<ItalicOutlined />} onClick={() => editor.chain().focus().toggleItalic().run()} />
-                <Button size="small" type={isActive('underline')} icon={<UnderlineOutlined />} onClick={() => editor.chain().focus().toggleUnderline().run()} />
-                
-                <Divider type="vertical" />
-                <Tooltip title="Слева"><Button size="small" type={isAlign('left')} icon={<AlignLeftOutlined />} onClick={() => editor.chain().focus().setTextAlign('left').run()} /></Tooltip>
-                <Tooltip title="Центр"><Button size="small" type={isAlign('center')} icon={<AlignCenterOutlined />} onClick={() => editor.chain().focus().setTextAlign('center').run()} /></Tooltip>
-                <Tooltip title="Справа"><Button size="small" type={isAlign('right')} icon={<AlignRightOutlined />} onClick={() => editor.chain().focus().setTextAlign('right').run()} /></Tooltip>
-
-                {/* Media Buttons */}
-                <Divider type="vertical" />
-                <Tooltip title="Загрузить фото"><Button size="small" icon={<PictureOutlined />} onClick={() => onImageRequest(editor)} /></Tooltip>
-                <Tooltip title="Добавить видео"><Button size="small" icon={<VideoCameraAddOutlined />} onClick={() => onVideoRequest(editor)} /></Tooltip>
-
-                <Divider type="vertical" style={{ height: '1.5em', marginLeft: 'auto' }} />
-                <Tooltip title="Отменить (Ctrl+Z)"><Button size="small" icon={<UndoOutlined />} onClick={() => editor.chain().focus().undo().run()} disabled={!editor.can().undo()} /></Tooltip>
-                <Tooltip title="Вернуть (Ctrl+Shift+Z)"><Button size="small" icon={<RedoOutlined />} onClick={() => editor.chain().focus().redo().run()} disabled={!editor.can().redo()} /></Tooltip>
-            </div>
-
-            <div style={{ flex: 1, overflowY: 'auto', padding: '40px', minHeight: '500px', cursor: 'text' }} onClick={() => editor.commands.focus()}>
-                <EditorContent editor={editor} style={{height: '100%'}} />
-            </div>
-            <style>{`
-                .tiptap-editor-content { outline: none; min-height: 100%; height: 100%; }
-                .tiptap-editor-content .ProseMirror { min-height: 100%; }
-                .tiptap-editor-content .ProseMirror-selectednode {
-                    outline: 2px solid ${colors.accent};
+                    colors: {
+                        pyblue: '#306998',
+                        pyyellow: '#FFD43B',
+                        kotpurple: '#7F52FF',
+                        darkbg: '#0f172a',
+                        cardbg: '#1e293b',
+                    }
                 }
-                .resizer-handle { opacity: 0; transition: opacity 0.2s; }
-                .node-resizable-container:hover .resizer-handle { opacity: 1; }
-            `}</style>
-        </div>
-    );
-};
-
-export default function App() {
-    const isTeacherDomain = window.location.hostname.startsWith('teacher.');
-    const [viewMode, setViewMode] = useState<'dash' | 'catalog' | 'preview' | 'editor' | 'player' | 'my-apps' | 'my-projects'>('dash');
-    const [user, setUser] = useState<any>(null);
-    const [allCourses, setAllCourses] = useState<any[]>([]);
-    const [mySubs, setMySubs] = useState<any[]>([]);
-
-    // --- STATE ---
-    const [editingCourse, setEditingCourse] = useState<any>(null);
-    const [chapters, setChapters] = useState<any[]>([]);
-    const [activeChapterIdx, setActiveChapterIdx] = useState(0);
-    const [activePageIdx, setActivePageIdx] = useState(0);
-    const [isSaving, setIsSaving] = useState(false);
-    const [isPreviewEditMode, setIsPreviewEditMode] = useState(false);
-
-    // Modals & Uploads
-    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-    const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
-    const [studentsModalOpen, setStudentsModalOpen] = useState(false);
-    
-    const imageInputRef = useRef<HTMLInputElement>(null);
-    const videoInputRef = useRef<HTMLInputElement>(null);
-
-    // Player
-    const [progress, setProgress] = useState<any>({ chapter: 0, page: 0, score: 0 });
-    const [courseCompleted, setCourseCompleted] = useState(false);
-    const [certificateAllowed, setCertificateAllowed] = useState(false);
-
-    // Tools
-    const [activeEditor, setActiveEditor] = useState<Editor | null>(null);
-    const [courseStudents, setCourseStudents] = useState<any[]>([]);
-    const [youtubeLink, setYoutubeLink] = useState('');
-
-    const isTeacher = user?.role === 'teacher' || isTeacherDomain;
-    const certRef = useRef<HTMLDivElement>(null);
-
-    // --- DRAG AND DROP STATES ---
-    const [draggedChapterIdx, setDraggedChapterIdx] = useState<number | null>(null);
-    const [draggedPageIdx, setDraggedPageIdx] = useState<{c: number, p: number} | null>(null);
-
-    // --- API ---
-    const fetchData = useCallback(async () => {
-        try {
-            const res = await axios.get('http://localhost:3000/courses');
-            const parsed = res.data.map((c: any) => {
-                let drafts = safeParse(c.draftChapters, []);
-                if(!Array.isArray(drafts)) drafts = [];
-                drafts = drafts.map((ch: any) => ({
-                    ...ch,
-                    pages: Array.isArray(ch.pages) ? ch.pages.map((p: any) => ({
-                        ...p,
-                        id: p.id || Date.now() + Math.random()
-                    })) : []
-                }));
-                const published = safeParse(c.publishedChapters, []);
-                return { ...c, draftChapters: drafts, publishedChapters: published };
-            });
-            setAllCourses(parsed);
-            if (user?.id && !isTeacher) {
-                const subRes = await axios.get(`http://localhost:3000/courses/subscriptions/${user.id}`);
-                setMySubs(subRes.data);
             }
-        } catch (e) { console.error(e); }
-    }, [user, isTeacher]);
-
-    useEffect(() => {
-        const u = localStorage.getItem('daicha_user');
-        if (u) { setUser(JSON.parse(u)); }
-        fetchData();
-    }, []);
-
-    useEffect(() => { if (user) fetchData(); }, [user, fetchData]);
-
-    // --- ACTIONS ---
-    const handleCreateCourse = async (values: any) => {
-        try {
-            const res = await axios.post('http://localhost:3000/courses', { ...values, authorId: user?.id || 1 });
-            const newCourse = { ...res.data, draftChapters: [], publishedChapters: [] };
-            setEditingCourse(newCourse);
-            setChapters([]); setActiveChapterIdx(0); setActivePageIdx(0);
-            setIsPreviewEditMode(true);
-            setViewMode('editor');
-            setIsCreateModalOpen(false);
-            fetchData();
-        } catch (e) { message.error("Ошибка"); }
-    };
-
-    const handleSubscribe = async (courseId: number) => {
-        await axios.post('http://localhost:3000/courses/subscribe', { userId: user.id, courseId });
-        message.success('Вы подписались!');
-        fetchData();
-    };
-
-    const handleUnsubscribe = async (courseId: number) => {
-        await axios.post('http://localhost:3000/courses/unsubscribe', { userId: user.id, courseId });
-        message.success('Вы отписались');
-        fetchData();
-    };
-
-    const refreshSubscription = async () => {
-        if (!user?.id || !editingCourse?.id) return;
-        const subRes = await axios.get(`http://localhost:3000/courses/subscriptions/${user.id}`);
-        setMySubs(subRes.data);
-        const sub = subRes.data.find((s:any) => s.courseId === editingCourse.id);
-        if (sub) {
-            setCertificateAllowed(sub.certificateAllowed);
-            if (sub.isCompleted) setCourseCompleted(true);
-            message.success("Данные обновлены");
         }
-    };
-
-    const handleOpenPreview = (course: any, isEdit: boolean) => {
-        setEditingCourse(course);
-        const chaps = (isEdit && isTeacher) ? course.draftChapters : course.publishedChapters;
-        setChapters(chaps || []);
-        setIsPreviewEditMode(isEdit);
-        setViewMode('preview');
-    };
-
-    const handleStartLearning = () => {
-        if (!chapters || chapters.length === 0) {
-            message.warning("В этом курсе пока нет уроков.");
-            return;
+    </script>
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #e2e8f0;
         }
-        const sub = mySubs.find(s => s.courseId === editingCourse.id);
-        setActiveChapterIdx(sub?.currentChapterIdx || 0);
-        setActivePageIdx(sub?.currentPageIdx || 0);
-        setProgress({
-            chapter: sub?.currentChapterIdx || 0,
-            page: sub?.currentPageIdx || 0,
-            score: sub?.totalScore || 0
-        });
-        setCourseCompleted(sub?.isCompleted || false);
-        setCertificateAllowed(sub?.certificateAllowed || false);
-        setViewMode('player');
-    };
-
-    const handleBackToMenu = () => {
-        if (isSaving) {
-            Modal.confirm({
-                title: 'Сохранение...', content: 'Данные еще сохраняются. Выйти?',
-                okButtonProps: {danger:true}, onOk: () => { fetchData(); setViewMode('dash'); }
-            });
-        } else { fetchData(); setViewMode('dash'); }
-    };
-
-    const saveProgress = async (newChap: number, newPage: number, addScore = 0) => {
-        setActiveChapterIdx(newChap);
-        setActivePageIdx(newPage);
-        const newScore = progress.score + addScore;
-        setProgress({ ...progress, chapter: newChap, page: newPage, score: newScore });
-        await axios.post('http://localhost:3000/courses/progress', {
-            userId: user.id, courseId: editingCourse.id, chapterIdx: newChap, pageIdx: newPage, totalScore: newScore
-        });
-    };
-
-    const generateCertificate = async () => {
-        if (!certRef.current) return;
-        certRef.current.style.display = 'flex';
-        try {
-            const canvas = await html2canvas(certRef.current, { scale: 2, useCORS: true });
-            const imgData = canvas.toDataURL('image/png');
-            const pdf = new jsPDF('landscape');
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = pdf.internal.pageSize.getHeight();
-            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-            pdf.save(`Certificate_${user.lastName}.pdf`);
-        } catch (e) { message.error("Ошибка PDF"); } 
-        finally { certRef.current.style.display = 'none'; }
-    };
-
-    // --- MEDIA UPLOAD HANDLERS ---
-
-    // 1. Image Click: Сразу открываем выбор файла
-    const handleImageRequest = (editor: any) => {
-        setActiveEditor(editor);
-        imageInputRef.current?.click();
-    };
-
-    // 2. Video Click: Открываем модалку с выбором (ссылка или файл)
-    const handleVideoRequest = (editor: any) => {
-        setActiveEditor(editor);
-        setYoutubeLink('');
-        setIsVideoModalOpen(true);
-    };
-
-    // 3. Process Upload
-    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'video') => {
-        const file = e.target.files?.[0];
-        if (!file || !activeEditor) return;
-
-        const loadingMsg = message.loading('Загрузка...', 0);
-        try {
-            const fd = new FormData();
-            fd.append('file', file);
-            const res = await axios.post('http://localhost:3000/courses/upload', fd);
-            const url = `http://localhost:3000/uploads/${res.data.url}`;
-
-            if (type === 'image') {
-                activeEditor.chain().focus().setImage({ src: url, width: '400px' as any }).run();
-            } else {
-                activeEditor.chain().focus().insertContent({ type: 'video', attrs: { src: url, width: '400px' } }).run();
-            }
-            if (type === 'video') setIsVideoModalOpen(false);
-        } catch (err) {
-            message.error("Ошибка загрузки файла");
-        } finally {
-            loadingMsg();
-            e.target.value = ''; 
+        .tech-tag {
+            transition: all 0.3s ease;
         }
-    };
-
-    // 4. Insert Youtube Link
-    const handleInsertYoutube = () => {
-        if (!activeEditor || !youtubeLink) return;
-        const isYoutube = youtubeLink.includes('youtube.com') || youtubeLink.includes('youtu.be');
-        
-        if (isYoutube) {
-            activeEditor.commands.setYoutubeVideo({ src: youtubeLink, width: '400px' } as any);
-        } else {
-            activeEditor.chain().focus().insertContent({ type: 'video', attrs: { src: youtubeLink, width: '400px' } }).run();
+        .tech-tag:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
-        setIsVideoModalOpen(false);
-    };
+        .project-card {
+            transition: all 0.3s ease;
+        }
+        .project-card:hover {
+            transform: translateY(-5px);
+            border-color: #3b82f6;
+        }
+        /* Градиентный текст */
+        .gradient-text {
+            background: linear-gradient(to right, #38bdf8, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .app-icon {
+            transition: transform 0.3s ease;
+        }
+        .group:hover .app-icon {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-cyan-500 selection:text-white" id="content-to-pdf">
 
-
-    // --- DRAG HANDLERS ---
-    const handleDragStartChapter = (e: any, idx: number) => { setDraggedChapterIdx(idx); };
-    const handleDropChapter = (e: any, dropIdx: number) => {
-        if (draggedChapterIdx === null) return;
-        const n = [...chapters];
-        const item = n.splice(draggedChapterIdx, 1)[0];
-        n.splice(dropIdx, 0, item);
-        setChapters(n);
-        setDraggedChapterIdx(null);
-    };
-    const handleDragStartPage = (e: any, cIdx: number, pIdx: number) => { e.stopPropagation(); setDraggedPageIdx({c: cIdx, p: pIdx}); };
-    const handleDropPage = (e: any, cIdx: number, dropPIdx: number) => {
-        e.stopPropagation();
-        if (!draggedPageIdx || draggedPageIdx.c !== cIdx) return;
-        const n = [...chapters];
-        const item = n[cIdx].pages.splice(draggedPageIdx.p, 1)[0];
-        n[cIdx].pages.splice(dropPIdx, 0, item);
-        setChapters(n);
-        setDraggedPageIdx(null);
-    };
-    const handleDragOverPage = (e: any, cIdx: number) => {
-        e.preventDefault();
-        if (draggedPageIdx && draggedPageIdx.c !== cIdx) e.dataTransfer.dropEffect = "none";
-        else e.dataTransfer.dropEffect = "move";
-    };
-
-    const addPage = (cIdx: number, type: 'content' | 'quiz') => {
-        const n = [...chapters];
-        const count = n[cIdx].pages.length + 1;
-        const title = type === 'quiz' ? `Тест ${count}` : `Стр ${count}`;
-        n[cIdx].pages.push({ type, content: '', questions: [], title, id: Date.now() + Math.random() });
-        setChapters(n);
-    };
-
-    // --- RENDERERS ---
-    const renderCertificateTemplate = () => (
-        <div ref={certRef} style={{ display: 'none', position: 'fixed', top: 0, left: 0, width: '1123px', height: '794px', background: '#f7f9fc', border: '20px solid #182e4e', padding: '40px', boxSizing: 'border-box', zIndex: -1000, flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{textAlign: 'center', border: '5px double #00ccff', width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
-                <Title style={{fontSize: 60, color: '#182e4e', marginBottom: 10}}>СЕРТИФИКАТ</Title>
-                <Text style={{fontSize: 24, color: '#666'}}>Настоящим подтверждается, что</Text>
-                <Title level={2} style={{fontSize: 48, margin: '20px 0', borderBottom: '2px solid #ccc', padding: '0 40px'}}>{user?.firstName} {user?.lastName}</Title>
-                <Text style={{fontSize: 24, color: '#666'}}>Успешно прошел(ла) курс</Text>
-                <Title level={3} style={{fontSize: 36, color: '#00ccff', marginTop: 20}}>{editingCourse?.title}</Title>
-                <div style={{marginTop: 60, display: 'flex', justifyContent: 'space-between', width: '80%'}}><Text>Дата: {new Date().toLocaleDateString()}</Text><Text>DAICHA LMS</Text></div>
-            </div>
-        </div>
-    );
-
-    // 1. CATALOG
-    if (viewMode === 'catalog') {
-        return (
-            <Layout style={{minHeight:'100vh'}}>
-                <Header style={{background: colors.dark, padding: '0 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                    <Space>
-                        <BookOutlined style={{color:'white'}}/>
-                        <Title level={4} style={{color:'white', margin:0}}>Каталог</Title>
-                    </Space>
-                    <Space>
-                        <Button ghost onClick={() => setViewMode('dash')}>Мои курсы</Button>
-                        <Button type="text" style={{color: 'white'}} icon={<AppstoreOutlined />} onClick={() => setViewMode('my-apps')}>Мои приложения</Button>
-                        <Button type="text" style={{color: 'white'}} icon={<ProjectOutlined />} onClick={() => setViewMode('my-projects')}>Мои проекты</Button>
-                    </Space>
-                </Header>
-                <Content style={{padding: 40}}>
-                    <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(300px, 1fr))', gap: 20}}>
-                        {allCourses.filter(c => c.isPublished).map(c => (
-                            <Card key={c.id} hoverable cover={c.coverUrl ? <img src={`http://localhost:3000/uploads/${c.coverUrl}`} style={{height:160, objectFit:'cover'}}/> : <div style={{height:160, background:colors.blue}}/>} onClick={() => handleOpenPreview(c, false)}>
-                                <Card.Meta title={c.title} description={<Paragraph ellipsis={{rows:2}}>{c.description ? c.description.replace(/<[^>]*>?/gm, '') : 'Нет описания'}</Paragraph>} />
-                                {mySubs.some(s => s.courseId === c.id) && <Tag color="green" style={{marginTop:10}}>Вы подписаны</Tag>}
-                            </Card>
-                        ))}
-                    </div>
-                </Content>
-            </Layout>
-        )
-    }
-
-    // 2. PREVIEW & PLAYER
-    if (viewMode === 'preview' || viewMode === 'player') {
-        const isPlayer = viewMode === 'player';
-        const currentChapter = chapters[activeChapterIdx];
-        const page = currentChapter?.pages?.[activePageIdx];
-        const isQuiz = page?.type === 'quiz';
-        
-        return (
-            <Layout style={{minHeight: '100vh', background: '#fff'}}>
-                <div style={{position: 'fixed', top: 20, left: 20, zIndex: 10}}>
-                    <Button icon={<ArrowLeftOutlined />} size="large" onClick={() => isPlayer ? setViewMode('preview') : handleBackToMenu()} shape="circle" />
+    <!-- Navigation -->
+    <nav id="navbar" class="fixed w-full z-50 bg-darkbg/90 backdrop-blur-md border-b border-gray-800">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex-shrink-0 font-mono font-bold text-xl tracking-tighter">
+                    <span class="text-pyblue">&lt;</span>Daicha<span class="text-kotpurple">/&gt;</span>
                 </div>
-                {renderCertificateTemplate()}
+                <div class="hidden md:flex items-center">
+                    <!-- ID для JS -->
+                    <div id="nav-links" class="ml-10 flex items-baseline space-x-8 nav-links-container">
+                        <a href="#about" class="hover:text-white px-3 py-2 rounded-md text-sm font-medium text-gray-300 transition-colors">Главная</a>
+                        <a href="#stack" class="hover:text-white px-3 py-2 rounded-md text-sm font-medium text-gray-300 transition-colors">Стек</a>
+                        <a href="#apps" class="hover:text-white px-3 py-2 rounded-md text-sm font-medium text-gray-300 transition-colors">Google Play</a>
+                        <a href="#experience" class="hover:text-white px-3 py-2 rounded-md text-sm font-medium text-gray-300 transition-colors">Проекты</a>
+                        <a href="#contact" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">Контакты</a>
+                    </div>
+                    
+                    <!-- КНОПКА PDF (Только иконка) -->
+                    <button onclick="generatePDF()" id="pdfBtn" class="pdf-btn ml-6 w-10 h-10 rounded-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center transition-all shadow-lg hover:scale-110 hover:shadow-red-500/30 group relative" title="Скачать PDF">
+                        <i id="pdfIcon" class="fas fa-file-pdf text-lg"></i>
+                        
+                        <!-- Tooltip -->
+                        <div class="absolute top-12 right-0 w-32 p-2 bg-gray-800 text-xs text-gray-200 rounded shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none text-center border border-gray-700 z-50">
+                            Скачать резюме
+                        </div>
+                    </button>
+
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="about" class="pt-32 pb-20 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
+        <div class="text-center md:text-left md:flex md:items-center md:justify-between">
+            <div class="md:w-2/3">
+                <div class="inline-flex items-center px-3 py-1 rounded-full border border-gray-700 bg-gray-800/50 text-xs font-medium text-cyan-400 mb-6">
+                    <span class="w-2 h-2 rounded-full bg-cyan-400 mr-2 animate-pulse"></span>
+                    Available for projects
+                </div>
+                <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight mb-2 text-white">
+                    Алиев Кямал
+                </h1>
+                <h2 class="text-3xl md:text-4xl font-bold mb-6">
+                    <span id="hero-title-text" class="gradient-text">Full-Stack Developer</span>
+                </h2>
+                <p class="mt-4 text-xl text-gray-400 max-w-2xl leading-relaxed">
+                    Python & Kotlin разработчик с 3-летним опытом. Создаю сложные backend-системы, веб-инструменты автоматизации и нативные мобильные приложения. 
+                    <br><span class="text-sm text-gray-500 mt-2 block">Django • FastAPI • Android • Automation • WordPress</span>
+                </p>
                 
-                {viewMode === 'preview' ? (
-                    <>
-                        <div style={{ height: 400, background: '#121921', position: 'relative', overflow: 'hidden' }}>
-                            {editingCourse.coverUrl ? <img src={editingCourse.coverUrl.startsWith('http') ? editingCourse.coverUrl : `http://localhost:3000/uploads/${editingCourse.coverUrl}`} style={{width:'100%', height:'100%', objectFit:'cover', opacity: 0.6}} /> : <div style={{width:'100%', height:'100%', background: 'linear-gradient(135deg, #182e4e, #00ccff)'}} />}
-                            <div style={{ position: 'absolute', bottom: 40, left: 40, zIndex: 2, width: '100%' }}>
-                                {isPreviewEditMode ? <Input.TextArea value={editingCourse.title} onChange={e => setEditingCourse({...editingCourse, title: e.target.value})} bordered={false} autoSize style={{ fontSize: 48, fontWeight: 'bold', color: 'white', background: 'transparent' }} /> : <Title level={1} style={{color:'white', margin:0, fontSize: 48}}>{editingCourse.title}</Title>}
-                            </div>
-                            {isPreviewEditMode && <div style={{position:'absolute', top:20, right:20, zIndex:3}}><Upload showUploadList={false} customRequest={async ({file}: any) => { const fd = new FormData(); fd.append('file', file); const res = await axios.post('http://localhost:3000/courses/upload', fd); setEditingCourse({...editingCourse, coverUrl: res.data.url}); }}><Button icon={<UploadOutlined />}>Обложка</Button></Upload></div>}
-                        </div>
-                        <Content style={{ maxWidth: 900, margin: '0 auto', padding: '40px 20px', width: '100%' }}>
-                            {isPreviewEditMode ? (
-                                <div style={{display:'flex', flexDirection:'column', height: '500px'}}>
-                                    <Title level={4}>Редактор описания</Title>
-                                    <div style={{flex:1, border:'1px solid #ddd', borderRadius:8}}><TiptapEditor content={editingCourse.description} onChange={(html:string) => setEditingCourse({...editingCourse, description: html})} onImageRequest={handleImageRequest} onVideoRequest={handleVideoRequest} placeholder="Опишите курс..." /></div>
-                                    <Button type="primary" size="large" icon={<CheckCircleOutlined />} style={{marginTop: 20}} onClick={async () => { setIsSaving(true); await axios.patch(`http://localhost:3000/courses/${editingCourse.id}/draft`, { chapters, previewData: { coverUrl: editingCourse.coverUrl }, coverUrl: editingCourse.coverUrl, title: editingCourse.title, description: editingCourse.description }); setIsSaving(false); message.success('Сохранено'); }}>Сохранить</Button>
-                                </div>
-                            ) : (
-                                <div style={{marginBottom: 40, display:'flex', gap: 40}}>
-                                    <div style={{flex:1}}><Title level={3}>О курсе</Title><div dangerouslySetInnerHTML={{ __html: editingCourse.description || "Нет описания" }} style={{fontSize: 16, lineHeight: 1.6}} /></div>
-                                    <Card style={{width: 300, textAlign:'center'}}><Title level={4}>Бесплатно</Title><Button type="primary" size="large" block icon={<PlayCircleOutlined />} onClick={handleStartLearning}>{mySubs.find(s => s.courseId === editingCourse.id)?.currentChapterIdx > 0 ? "Продолжить" : "Начать обучение"}</Button>{!mySubs.some(s => s.courseId === editingCourse.id) && <Button type="dashed" block style={{marginTop:10}} onClick={() => handleSubscribe(editingCourse.id)}>Подписаться</Button>}</Card>
-                                </div>
-                            )}
-                        </Content>
-                    </>
-                ) : (
-                    <Content style={{ maxWidth: 800, margin: '0 auto', padding: '100px 20px', width: '100%' }}>
-                        {!page ? <Empty /> : (
-                            <>
-                                <div style={{display:'flex', justifyContent:'space-between'}}><Title level={3}>{currentChapter?.title}</Title><Tag color="blue">Стр {activePageIdx + 1} / {currentChapter?.pages.length}</Tag></div>
-                                <Progress percent={Math.round(((activeChapterIdx * 100) + (activePageIdx / (currentChapter?.pages.length||1) * 100)) / chapters.length)} strokeColor={colors.accent} />
-                                <Divider />
-                                {isQuiz ? (
-                                    <Card title="Тест" style={{ borderColor: colors.accent }}>
-                                        {page.questions.map((q:any, i:number) => (
-                                            <div key={i} style={{marginBottom: 20}}><Text strong>{i+1}. {q.text}</Text><div style={{marginTop:10}}>{q.options.map((opt:any, oi:number) => <div key={oi} style={{padding:'10px', border:'1px solid #eee', margin:'5px 0', borderRadius:4}}>{opt.text}</div>)}</div></div>
-                                        ))}
-                                        <Button type="primary" block onClick={() => { message.success("Тест сдан!"); saveProgress(activeChapterIdx, activePageIdx, 10); }}>Сдать (Демо)</Button>
-                                    </Card>
-                                ) : <div dangerouslySetInnerHTML={{ __html: page.content }} style={{ fontSize: 18, lineHeight: 1.6 }} className="player-content" />}
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 50 }}>
-                                    <Button size="large" disabled={activeChapterIdx===0 && activePageIdx===0} onClick={() => activePageIdx > 0 ? saveProgress(activeChapterIdx, activePageIdx - 1) : saveProgress(activeChapterIdx - 1, chapters[activeChapterIdx - 1].pages.length - 1)}>Назад</Button>
-                                    <Button type="primary" size="large" onClick={() => { const isLastPage = activePageIdx === currentChapter.pages.length - 1; const isLastChapter = activeChapterIdx === chapters.length - 1; if (isLastPage && isLastChapter) { setCourseCompleted(true); axios.post('http://localhost:3000/courses/progress', { userId: user.id, courseId: editingCourse.id, isCompleted: true }); } else if (isLastPage) saveProgress(activeChapterIdx + 1, 0); else saveProgress(activeChapterIdx, activePageIdx + 1); }}>{courseCompleted ? 'Завершить' : 'Далее'}</Button>
-                                </div>
-                                {courseCompleted && <Card style={{marginTop: 40, textAlign: 'center', background: '#f6ffed'}}><TrophyOutlined style={{fontSize: 48, color: '#ffec3d'}} /><Title level={3}>Поздравляем!</Title><Button type="primary" icon={<DownloadOutlined />} size="large" onClick={generateCertificate}>Скачать сертификат</Button></Card>}
-                            </>
-                        )}
-                    </Content>
-                )}
-            </Layout>
-        );
-    }
+                <!-- Hero Buttons Container (ID added for PDF hiding) -->
+                <div id="hero-buttons" class="mt-8 flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                    <a href="#apps" class="px-8 py-4 bg-white text-darkbg font-bold rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center gap-2">
+                        <i class="fab fa-google-play leading-none"></i> <span class="leading-none">Мои Приложения</span>
+                    </a>
+                    <a href="#experience" class="px-8 py-4 border border-gray-700 rounded-lg hover:border-gray-500 hover:bg-gray-800 transition-all flex items-center justify-center">
+                        <span class="leading-none">Мои Проекты</span>
+                    </a>
+                </div>
+            </div>
+             
+            <!-- Code Decoration -->
+            <div class="hidden md:block md:w-1/3 mt-10 md:mt-0 relative">
+                <div class="absolute -inset-1 bg-gradient-to-r from-pyblue to-kotpurple rounded-xl blur opacity-30"></div>
+                <div class="relative bg-cardbg p-6 rounded-xl border border-gray-700 font-mono text-sm shadow-2xl">
+                    <div class="flex gap-2 mb-4">
+                        <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                    </div>
+                    <p class="text-pink-400">class <span class="text-yellow-300">Kamal_Aliev</span>:</p>
+                    <p class="pl-4 text-gray-300">def <span class="text-blue-400">__init__</span>(self):</p>
+                    <p class="pl-8 text-gray-300">self.backend = [<span class="text-green-400">'Python'</span>, <span class="text-green-400">'FastAPI'</span>]</p>
+                    <p class="pl-8 text-gray-300">self.mobile = [<span class="text-green-400">'Kotlin'</span>, <span class="text-green-400">'Android'</span>]</p>
+                    <p class="pl-8 text-gray-300">self.web = [<span class="text-green-400">'WordPress'</span>, <span class="text-green-400">'JS'</span>]</p>
+                    <p class="pl-8 text-gray-300">self.experience = <span class="text-purple-400">3</span> <span class="text-gray-500"># Years</span></p>
+                </div>
+            </div>
+        </div>
+    </section>
 
-    // 4. MAIN LAYOUT
-    return (
-        <Layout style={{ minHeight: '100vh' }}>
-            <Header style={{ background: colors.dark, padding: '0 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Title level={3} style={{ color: 'white', margin: 0 }}>DAICHA <span style={{color: colors.accent}}>LMS</span></Title>
-                <Space>
-                    {user && !isTeacher && <Button icon={<BookOutlined />} onClick={() => setViewMode('catalog')}>Каталог</Button>}
-                    <Button type="text" style={{color: 'white'}} icon={<AppstoreOutlined />} onClick={() => setViewMode('my-apps')}>Мои приложения</Button>
-                    <Button type="text" style={{color: 'white'}} icon={<ProjectOutlined />} onClick={() => setViewMode('my-projects')}>Мои проекты</Button>
-                    {user ? <Tag color="blue">{user.firstName}</Tag> : <Button onClick={() => { const u = { id: 1, role: 'teacher', firstName: 'Teacher' }; setUser(u); localStorage.setItem('daicha_user', JSON.stringify(u)); }}>Login Teacher</Button>}
-                </Space>
-            </Header>
+    <!-- Stack Section -->
+    <section id="stack" class="py-20 bg-gray-900/50">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold mb-12 flex items-center gap-3">
+                <i class="fas fa-layer-group text-cyan-400"></i>
+                <span class="text-white">Технический Стек</span>
+            </h2>
 
-            <Content style={{ padding: 40 }}>
-                {viewMode === 'my-apps' && <div style={{textAlign: 'center', marginTop: 100}}><AppstoreOutlined style={{fontSize: 64, color: '#ccc'}} /><Title level={3}>Мои приложения</Title><Text>Здесь будут ваши приложения</Text></div>}
-                {viewMode === 'my-projects' && <div style={{textAlign: 'center', marginTop: 100}}><ProjectOutlined style={{fontSize: 64, color: '#ccc'}} /><Title level={3}>Мои проекты</Title><Text>Здесь будут ваши проекты</Text></div>}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                
+                <!-- Backend & Web -->
+                <div class="bg-cardbg rounded-2xl p-6 border border-gray-800 hover:border-pyblue/50 transition-colors">
+                    <div class="flex items-center gap-3 mb-4">
+                        <i class="fas fa-server text-2xl text-pyyellow"></i>
+                        <h3 class="text-xl font-bold text-white">Backend & Web</h3>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="tech-tag px-2 py-1 bg-gray-800 text-cyan-300 text-xs rounded border border-gray-700">Python 3.11+</span>
+                        <span class="tech-tag px-2 py-1 bg-gray-800 text-cyan-300 text-xs rounded border border-gray-700">FastAPI</span>
+                        <span class="tech-tag px-2 py-1 bg-gray-800 text-cyan-300 text-xs rounded border border-gray-700">Django / DRF</span>
+                        <span class="tech-tag px-2 py-1 bg-gray-800 text-cyan-300 text-xs rounded border border-gray-700">PostgreSQL</span>
+                        <span class="tech-tag px-2 py-1 bg-gray-800 text-cyan-300 text-xs rounded border border-gray-700">WordPress API</span>
+                        <span class="tech-tag px-2 py-1 bg-gray-800 text-cyan-300 text-xs rounded border border-gray-700">Nginx</span>
+                        <span class="tech-tag px-2 py-1 bg-gray-800 text-cyan-300 text-xs rounded border border-gray-700">Docker</span>
+                    </div>
+                </div>
 
-                {viewMode === 'dash' && (
-                    <>
-                        <div style={{display:'flex', justifyContent:'space-between', marginBottom: 20}}>
-                            <Title level={2}>{isTeacher ? "Управление" : "Мои курсы"}</Title>
-                            {isTeacher && <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsCreateModalOpen(true)}>Создать курс</Button>}
-                        </div>
-                        <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(300px, 1fr))', gap:20}}>
-                            {(isTeacher ? allCourses : allCourses.filter(c => mySubs.some(s => s.courseId === c.id))).map(c => (
-                                <Card key={c.id} hoverable bodyStyle={{padding: 0}} cover={c.coverUrl ? <img src={`http://localhost:3000/uploads/${c.coverUrl}`} style={{height:140, objectFit:'cover'}} /> : <div style={{height:140, background:'linear-gradient(45deg, #182e4e, #00ccff)', display:'flex', alignItems:'center', justifyContent:'center'}}><FileImageOutlined style={{fontSize:40, color:'white'}}/></div>} >
-                                    <div style={{padding: 16}}><Title level={5} ellipsis={{ rows: 1 }}>{c.title}</Title>{isTeacher ? (c.isPublished ? <Tag color="green">Опубликован</Tag> : <Tag>Черновик</Tag>) : <Progress percent={mySubs.find(s=>s.courseId===c.id)?.isCompleted ? 100 : 30} size="small" />}</div>
-                                    {isTeacher ? <div style={{display:'flex', borderTop:'1px solid #f0f0f0'}}><Button type="text" block icon={<SettingOutlined />} onClick={() => handleOpenPreview(c, true)} /><div style={{width:1, background:'#f0f0f0'}}></div><Button type="text" block icon={<EditOutlined />} onClick={() => { setEditingCourse(c); setChapters(c.draftChapters||[]); setActiveChapterIdx(0); setActivePageIdx(0); setViewMode('editor'); }} /><div style={{width:1, background:'#f0f0f0'}}></div><Button type="text" block icon={<UserOutlined />} onClick={async () => { const res = await axios.get(`http://localhost:3000/courses/${c.id}/students`); setCourseStudents(res.data); setStudentsModalOpen(true); }} /></div> : <Button type="primary" block onClick={() => handleOpenPreview(c, false)}>Начать</Button>}
-                                </Card>
-                            ))}
-                        </div>
-                    </>
-                )}
+                <!-- Mobile Android -->
+                <div class="bg-cardbg rounded-2xl p-6 border border-gray-800 hover:border-kotpurple/50 transition-colors">
+                    <div class="flex items-center gap-3 mb-4">
+                        <i class="fab fa-android text-2xl text-green-500"></i>
+                        <h3 class="text-xl font-bold text-white">Android Dev</h3>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="tech-tag px-2 py-1 bg-gray-800 text-purple-300 text-xs rounded border border-gray-700">Kotlin</span>
+                        <span class="tech-tag px-2 py-1 bg-gray-800 text-purple-300 text-xs rounded border border-gray-700">Jetpack Compose</span>
+                        <span class="tech-tag px-2 py-1 bg-gray-800 text-purple-300 text-xs rounded border border-gray-700">Coroutines</span>
+                        <span class="tech-tag px-2 py-1 bg-gray-800 text-purple-300 text-xs rounded border border-gray-700">Retrofit 2</span>
+                        <span class="tech-tag px-2 py-1 bg-gray-800 text-purple-300 text-xs rounded border border-gray-700">Room Database</span>
+                        <span class="tech-tag px-2 py-1 bg-gray-800 text-purple-300 text-xs rounded border border-gray-700">MVVM / Clean</span>
+                    </div>
+                </div>
 
-                {viewMode === 'editor' && editingCourse && (
-                    <Layout style={{background: '#fff', borderRadius: 8, overflow:'hidden', border:'1px solid #eee', height: 'calc(100vh - 100px)', display: 'flex'}}>
-                        <Sider theme="light" width={300} style={{borderRight:'1px solid #eee', overflowY: 'auto'}}>
-                            <div style={{padding:10}}><Button block type="dashed" onClick={() => setChapters([...chapters, {title:'Новая глава', pages:[]}])}>+ Глава</Button></div>
-                            {chapters.map((ch, ci) => (
-                                <div key={ci} draggable onDragStart={(e) => handleDragStartChapter(e, ci)} onDragOver={(e) => e.preventDefault()} onDrop={(e) => handleDropChapter(e, ci)} style={{padding:10, borderBottom:'1px solid #f0f0f0', background: activeChapterIdx===ci ? '#f0faff' : '#fff', cursor: 'move'}}>
-                                    <div style={{display:'flex', alignItems:'center', gap:5}}><HolderOutlined style={{color:'#ccc'}} /><Input value={ch.title} onChange={e=>{const n=[...chapters]; n[ci].title=e.target.value; setChapters(n)}} bordered={false} style={{fontWeight:'bold'}} /><Button size="small" type="text" danger icon={<DeleteOutlined />} onClick={()=>{const n=chapters.filter((_,i)=>i!==ci); setChapters(n);}} /></div>
-                                    {ch.pages?.map((p:any, pi:number) => (
-                                        <div key={pi} draggable onDragStart={(e) => handleDragStartPage(e, ci, pi)} onDragOver={(e) => handleDragOverPage(e, ci)} onDrop={(e) => handleDropPage(e, ci, pi)} onClick={(e)=>{e.stopPropagation(); setActiveChapterIdx(ci); setActivePageIdx(pi)}} style={{padding:'6px 10px', marginLeft:15, cursor:'pointer', display:'flex', alignItems:'center', gap:8, color: (activeChapterIdx===ci && activePageIdx===pi)?colors.blue:'black', background: (activeChapterIdx===ci && activePageIdx===pi)?'#e6f7ff':'transparent', borderRadius:4}}>
-                                            <HolderOutlined style={{fontSize:10, color:'#ccc'}} />{p.type === 'quiz' ? <QuestionCircleOutlined /> : <FileTextOutlined />}<span style={{fontSize:13}}>{p.title}</span><Button type="text" size="small" danger icon={<DeleteOutlined style={{fontSize:10}} />} style={{marginLeft:'auto'}} onClick={(e)=>{e.stopPropagation(); const n=[...chapters]; n[ci].pages.splice(pi,1); setChapters(n);}} />
-                                        </div>
-                                    ))}
-                                    <div style={{display:'flex', gap:5, marginTop:5, marginLeft:20}}><Button size="small" block icon={<FileAddOutlined />} onClick={() => addPage(ci, 'content')}>Стр</Button><Button size="small" block icon={<FormOutlined />} onClick={() => addPage(ci, 'quiz')}>Тест</Button></div>
-                                </div>
-                            ))}
-                        </Sider>
-                        <Content style={{padding: 20, display: 'flex', flexDirection: 'column', height: '100%'}}>
-                            <div style={{marginBottom:10, display:'flex', justifyContent:'space-between'}}>
-                                <Button icon={<ArrowLeftOutlined />} onClick={() => handleBackToMenu()}>Назад</Button>
-                                <Space><Button type="primary" icon={<CloudSyncOutlined />} loading={isSaving} onClick={async () => { setIsSaving(true); await axios.patch(`http://localhost:3000/courses/${editingCourse.id}/draft`, { chapters, previewData: {}, coverUrl: editingCourse.coverUrl }); setIsSaving(false); message.success('Сохранено'); }}>Сохранить</Button><Button style={{background: colors.green, color: 'white'}} onClick={async () => { await axios.post(`http://localhost:3000/courses/${editingCourse.id}/publish`); message.success('Опубликовано'); }}>Опубликовать</Button></Space>
-                            </div>
-                            {chapters[activeChapterIdx]?.pages?.[activePageIdx] ? (
-                                chapters[activeChapterIdx].pages[activePageIdx].type === 'quiz' ? 
-                                <div><Title level={4}>Тест</Title>{/* Quiz Editor logic omitted for brevity */}</div> : 
-                                <div style={{flex: 1, overflow: 'hidden'}}><TiptapEditor key={chapters[activeChapterIdx].pages[activePageIdx].id} content={chapters[activeChapterIdx].pages[activePageIdx].content || ''} onChange={(html:string) => { const n = [...chapters]; if(n[activeChapterIdx]?.pages?.[activePageIdx]) n[activeChapterIdx].pages[activePageIdx].content = html; setChapters(n); }} onImageRequest={handleImageRequest} onVideoRequest={handleVideoRequest} /></div>
-                            ) : <Empty description="Выберите страницу" />}
-                        </Content>
-                    </Layout>
-                )}
-            </Content>
+                <!-- Scripts & Tools -->
+                <div class="bg-cardbg rounded-2xl p-6 border border-gray-800 hover:border-red-500/50 transition-colors">
+                    <div class="flex items-center gap-3 mb-4">
+                        <i class="fas fa-robot text-2xl text-red-400"></i>
+                        <h3 class="text-xl font-bold text-white">Scripts & Auto</h3>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="tech-tag px-2 py-1 bg-gray-800 text-pink-300 text-xs rounded border border-gray-700">Aiogram</span>
+                        <span class="tech-tag px-2 py-1 bg-gray-800 text-pink-300 text-xs rounded border border-gray-700">Selenium</span>
+                        <span class="tech-tag px-2 py-1 bg-gray-800 text-pink-300 text-xs rounded border border-gray-700">Pandas</span>
+                        <span class="tech-tag px-2 py-1 bg-gray-800 text-pink-300 text-xs rounded border border-gray-700">BeautifulSoup4</span>
+                        <span class="tech-tag px-2 py-1 bg-gray-800 text-pink-300 text-xs rounded border border-gray-700">Telethon</span>
+                        <span class="tech-tag px-2 py-1 bg-gray-800 text-pink-300 text-xs rounded border border-gray-700">Celery + Redis</span>
+                    </div>
+                </div>
 
-            {/* Hidden Inputs for Direct Upload */}
-            <input type="file" ref={imageInputRef} hidden accept="image/*" onChange={(e) => handleFileUpload(e, 'image')} />
-            <input type="file" ref={videoInputRef} hidden accept="video/*" onChange={(e) => handleFileUpload(e, 'video')} />
+            </div>
+        </div>
+    </section>
 
-            {/* Video Modal */}
-            <Modal 
-                title="Добавить видео" 
-                open={isVideoModalOpen} 
-                onCancel={() => setIsVideoModalOpen(false)} 
-                footer={null}
-                width={500}
-            >
-                <Space direction="vertical" style={{width: '100%'}}>
-                    <Text type="secondary">Ссылка на YouTube или видеофайл:</Text>
-                    <Space.Compact style={{ width: '100%' }}>
-                        <Input 
-                            placeholder="https://youtube.com/..." 
-                            value={youtubeLink} 
-                            onChange={e => setYoutubeLink(e.target.value)} 
-                            onPressEnter={handleInsertYoutube}
-                        />
-                        <Button type="primary" onClick={handleInsertYoutube}>Добавить</Button>
-                    </Space.Compact>
-                    
-                    <Divider plain>или загрузите с устройства</Divider>
-                    
-                    <Button block size="large" icon={<LaptopOutlined />} onClick={() => videoInputRef.current?.click()}>
-                        Выбрать файл
-                    </Button>
-                </Space>
-            </Modal>
+    <!-- Google Play Section (5 APPS WITH IMAGES) -->
+    <section id="apps" class="py-20 relative overflow-hidden">
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-green-500/5 rounded-full blur-[120px] pointer-events-none"></div>
 
-            {/* Create Course Modal */}
-            <Modal title="Создание курса" open={isCreateModalOpen} onCancel={() => setIsCreateModalOpen(false)} footer={null}>
-                <Form layout="vertical" onFinish={handleCreateCourse}>
-                    <Form.Item name="title" label="Название" rules={[{required: true}]}><Input /></Form.Item>
-                    <Form.Item name="description" label="Описание"><Input.TextArea rows={3} /></Form.Item>
-                    <Button type="primary" htmlType="submit" block>Создать</Button>
-                </Form>
-            </Modal>
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="text-center mb-16">
+                <span class="text-green-400 font-mono text-sm tracking-wider uppercase">Android Development</span>
+                <h2 class="text-4xl font-bold text-white mt-2">Опубликовано в Google Play</h2>
+                <p class="text-gray-400 mt-4">Мои личные приложения. Полный цикл разработки: от идеи до релиза.</p>
+            </div>
+
+            <!-- Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                
+                <!-- APP 1 -->
+                <div class="bg-gray-800/40 backdrop-blur rounded-xl p-5 border border-gray-700 hover:border-green-500/50 transition-all flex flex-col group">
+                    <div class="mb-4">
+                        <img src="https://play-lh.googleusercontent.com/8m1W1nuD2clqu0wTenhN2gOktucXbcWEtq1326wmOXOtLKktNeShEFVfD6MUE6Oczqul=w480-h960-rw" crossorigin="anonymous" onerror="this.src='https://placehold.co/200x200/1e293b/white?text=No+Icon'" alt="Icon 1" class="app-icon w-20 h-20 rounded-2xl shadow-lg border border-gray-700 object-cover">
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">Ai Chat</h3>
+                    <p class="text-gray-400 text-xs mb-4 flex-grow">
+                        «Ai Chat» — это революционный чат-бот с искусственным интеллектом, работающий на API ChatGPT, GPT-3 и GPT-4, Dalle, Dalle APIs.
+                    </p>
+                    <a href="https://play.google.com/store/apps/details?id=com.daicha.gptfree" target="_blank" class="text-center py-2 rounded bg-white/5 hover:bg-white/10 text-white text-xs font-medium transition-colors border border-white/5">Google Play</a>
+                </div>
+
+                <!-- APP 2 -->
+                <div class="bg-gray-800/40 backdrop-blur rounded-xl p-5 border border-gray-700 hover:border-green-500/50 transition-all flex flex-col group">
+                    <div class="mb-4">
+                         <img src="https://play-lh.googleusercontent.com/6bVps4Ke8KKsHQcGlwGGXqTIRivg42aPKFjgcDP0p5Ss57zNmYiV4G7sNCXxKLiBng=w480-h960-rw" crossorigin="anonymous" onerror="this.src='https://placehold.co/200x200/1e293b/white?text=No+Icon'" alt="Icon 2" class="app-icon w-20 h-20 rounded-2xl shadow-lg border border-gray-700 object-cover">
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">Конвертер валют</h3>
+                    <p class="text-gray-400 text-xs mb-4 flex-grow">
+                        Мультивалютный конвертер, с курсами, как валют так и крипты.
+                    </p>
+                    <a href="https://play.google.com/store/apps/details?id=com.offlineconverter085.converter" target="_blank" class="text-center py-2 rounded bg-white/5 hover:bg-white/10 text-white text-xs font-medium transition-colors border border-white/5">Google Play</a>
+                </div>
+
+                <!-- APP 3 -->
+                <div class="bg-gray-800/40 backdrop-blur rounded-xl p-5 border border-gray-700 hover:border-green-500/50 transition-all flex flex-col group">
+                    <div class="mb-4">
+                         <img src="https://play-lh.googleusercontent.com/5KF8hew2TbNkPSsDFuZn3VqmNg_cJmLGxMTEZaVqtgR2hEXes7ixmilv2mYkGH6SivYi=w480-h960-rw" crossorigin="anonymous" onerror="this.src='https://placehold.co/200x200/1e293b/white?text=No+Icon'" alt="Icon 3" class="app-icon w-20 h-20 rounded-2xl shadow-lg border border-gray-700 object-cover">
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">Заметки</h3>
+                    <p class="text-gray-400 text-xs mb-4 flex-grow">
+                        Просто приложение для заметок и списков.
+                    </p>
+                    <a href="https://play.google.com/store/apps/details?id=com.daichasimplenotes.notes" target="_blank" class="text-center py-2 rounded bg-white/5 hover:bg-white/10 text-white text-xs font-medium transition-colors border border-white/5">Google Play</a>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Projects Section (5 PROJECTS) -->
+    <section id="experience" class="py-20 bg-gray-900/50">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold mb-12 border-l-4 border-cyan-500 pl-4">Ключевые Проекты (Freelance)</h2>
             
-            {/* Students Modal */}
-            <Modal title="Студенты курса" open={studentsModalOpen} onCancel={() => setStudentsModalOpen(false)} width={700} footer={null}>
-                <Table dataSource={courseStudents} rowKey="id" pagination={false} columns={[{ title: 'ID', dataIndex: 'userId', width: 60 }, { title: 'Прогресс', render: (_, r) => r.isCompleted ? <Tag color="green">Завершен</Tag> : <Tag color="orange">В процессе</Tag> }, { title: 'Баллы', dataIndex: 'totalScore', render: (val, rec) => <InputNumber value={val} onChange={async (v) => { await axios.post('http://localhost:3000/courses/progress', { userId: rec.userId, courseId: rec.courseId, totalScore: v }); const newS = [...courseStudents]; newS.find(s=>s.id===rec.id).totalScore=v; setCourseStudents(newS); }} /> }, { title: 'Сертификат', dataIndex: 'certificateAllowed', render: (val, rec) => <Switch checked={val} onChange={async (c) => { await axios.post(`http://localhost:3000/courses/certificate/${rec.id}`, { allowed: c }); const newS = [...courseStudents]; newS.find(s=>s.id===rec.id).certificateAllowed=c; setCourseStudents(newS); }} checkedChildren="Вкл" unCheckedChildren="Выкл" /> }]} />
-            </Modal>
-            <style>{`
-                /* Глобальное выравнивание кнопок */
-                .ant-btn {
-                    display: inline-flex !important;
-                    align-items: center !important;
-                    justify-content: center !important;
-                }
-                .ant-btn span {
-                    display: inline-flex !important;
-                    align-items: center !important;
-                }
-            `}</style>
-        </Layout>
-    );
-}
+            <div class="relative border-l border-gray-700 ml-3 space-y-12">
+                
+                <!-- Project 1: Taxi -->
+                <div class="relative pl-8">
+                    <div class="absolute -left-[9px] top-0 w-5 h-5 bg-yellow-500 rounded-full border-4 border-gray-900"></div>
+                    <h3 class="text-xl font-bold text-white">Интеграция Яндекс.Такси (Full-Stack)</h3>
+                    <p class="text-sm text-yellow-500 mb-2 font-mono">Python, API Integration, Backend</p>
+                    <p class="text-gray-400">
+                        Разработка "прослойки" между мессенджером и корпоративным API такси. Реализован сложный State-Machine для оформления заказа, расчета стоимости маршрута и выбора тарифа без использования официального приложения.
+                    </p>
+                </div>
+
+                <!-- Project 2: TWA -->
+                <div class="relative pl-8">
+                    <div class="absolute -left-[5px] top-2 w-3 h-3 bg-gray-600 rounded-full"></div>
+                    <h3 class="text-lg font-bold text-white mb-1">Внутренний Корпоративный Портал (TWA)</h3>
+                    <p class="text-sm text-cyan-500 mb-2 font-mono">JavaScript Frontend + FastAPI Backend</p>
+                    <p class="text-gray-400">
+                        Полноценное веб-приложение (Single Page Application), работающее внутри Telegram. Система позволяет сотрудникам заполнять отчеты, видеть график смен и статистику. Бесшовная авторизация через Telegram initData.
+                    </p>
+                </div>
+
+                <!-- Project 3: SMM SaaS -->
+                <div class="relative pl-8">
+                    <div class="absolute -left-[5px] top-2 w-3 h-3 bg-gray-600 rounded-full"></div>
+                    <h3 class="text-lg font-bold text-white mb-1">SMM Платформа Автоматизации</h3>
+                    <p class="text-sm text-purple-400 mb-2 font-mono">Python, Redis, Telethon, Web Admin</p>
+                    <p class="text-gray-400">
+                        Масштабируемая система для управления активностью в соцсетях. Бэкенд управляет сотнями аккаунтов (userbots) через прокси. Включает веб-админку для клиентов, биллинг и очередь задач на базе Celery/Redis.
+                    </p>
+                </div>
+
+                <!-- Project 4: Analytics (New) -->
+                <div class="relative pl-8">
+                    <div class="absolute -left-[5px] top-2 w-3 h-3 bg-gray-600 rounded-full"></div>
+                    <h3 class="text-lg font-bold text-white mb-1">E-commerce Аналитика и Парсинг</h3>
+                    <p class="text-sm text-blue-400 mb-2 font-mono">Python, Pandas, Selenium, PostgreSQL</p>
+                    <p class="text-gray-400">
+                        Скрипт мониторинга цен конкурентов для крупного ритейлера. Ежедневный сбор данных с 5+ маркетплейсов, очистка данных (Pandas), сохранение в БД и генерация Excel-отчетов для отдела закупок.
+                    </p>
+                </div>
+
+                <!-- Project 5: WordPress Integration (New) -->
+                <div class="relative pl-8">
+                    <div class="absolute -left-[5px] top-2 w-3 h-3 bg-gray-600 rounded-full"></div>
+                    <h3 class="text-lg font-bold text-white mb-1">Агрегатор Недвижимости (WordPress + Python)</h3>
+                    <p class="text-sm text-green-400 mb-2 font-mono">WordPress REST API, Python Scripting</p>
+                    <p class="text-gray-400">
+                        Настройка сайта на WordPress и написание внешнего Python-скрипта, который собирает объявления с разных источников и автоматически публикует их на сайте через WP REST API, распределяя по категориям и городам.
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="contact" class="py-12 border-t border-gray-800 text-center">
+        <div class="max-w-4xl mx-auto px-4">
+            <h2 class="text-2xl font-bold text-white mb-8">Связаться со мной</h2>
+            <div class="flex justify-center gap-8 mb-8">
+                <!-- Telegram -->
+                <a href="https://t.me/daichitakedakz" target="_blank" class="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-blue-500 hover:text-white transition-all text-2xl shadow-lg border border-gray-700 hover:scale-110">
+                    <i class="fab fa-telegram-plane leading-none"></i>
+                </a>
+                
+                <!-- WhatsApp -->
+                <a href="https://wa.me/+77012439738" target="_blank" class="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-green-500 hover:text-white transition-all text-2xl shadow-lg border border-gray-700 hover:scale-110">
+                    <i class="fab fa-whatsapp leading-none"></i>
+                </a>
+
+                <!-- Email -->
+                <a href="mailto:daichaapps@gmail.com" class="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-red-500 hover:text-white transition-all text-2xl shadow-lg border border-gray-700 hover:scale-110">
+                    <i class="fas fa-envelope leading-none"></i>
+                </a>
+            </div>
+            <p class="text-gray-600 text-sm">
+                &copy; 2026 Алиев Кямал.
+            </p>
+        </div>
+    </footer>
+
+    <!-- PDF Generation Logic -->
+    <script>
+        window.jsPDF = window.jspdf.jsPDF;
+
+        async function generatePDF() {
+            const btn = document.getElementById('pdfBtn');
+            const icon = document.getElementById('pdfIcon');
+            const navbar = document.getElementById('navbar');
+            const navLinks = document.getElementById('nav-links'); // Меню ссылок
+            const heroButtons = document.getElementById('hero-buttons'); // Кнопки "Мои Приложения"
+            const body = document.body;
+            const heroTitle = document.getElementById('hero-title-text');
+
+            // 1. UI Feedback: Show Spinner
+            const originalIconClass = icon.className;
+            icon.className = 'fas fa-spinner fa-spin text-lg';
+            btn.disabled = true;
+
+            try {
+                // 2. Prepare Viewport
+                // Temporarily hide the PDF button from the screenshot
+                btn.style.visibility = 'hidden';
+                
+                // Hide Nav Links & Hero Buttons visually (using opacity so layout stays same)
+                navLinks.style.opacity = '0';
+                heroButtons.style.opacity = '0';
+
+                // FIX GRADIENT TEXT (remove gradient for capture)
+                const originalGradientStyle = heroTitle.style.cssText;
+                heroTitle.style.background = 'none';
+                heroTitle.style.webkitTextFillColor = '#818cf8'; // Solid color fallback
+                heroTitle.style.color = '#818cf8';
+                
+                // Fix Navbar for capture (absolute position instead of fixed)
+                const originalNavClass = navbar.className;
+                navbar.classList.remove('fixed');
+                navbar.classList.add('absolute');
+                
+                // Scroll to top to ensure clean capture
+                window.scrollTo(0, 0);
+
+                // 3. CAPTURE SCREENSHOT (Solves Cyrillic/Font Issues)
+                const canvas = await html2canvas(body, {
+                    useCORS: true,       // Load cross-origin images (Google Play)
+                    allowTaint: true,
+                    scale: 2,            // Retina quality
+                    logging: false,
+                    scrollY: 0,
+                    windowWidth: document.documentElement.scrollWidth, // Full width
+                    windowHeight: document.documentElement.scrollHeight // Full height
+                });
+
+                // 4. SETUP PDF
+                // We create a PDF that matches the aspect ratio of the site content
+                // A4 Width is approx 595.28 pt. We map the canvas width to this.
+                const pdfWidth = 595.28; 
+                const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+                
+                // Create single long page PDF
+                const doc = new jsPDF({
+                    orientation: 'p',
+                    unit: 'pt',
+                    format: [pdfWidth, pdfHeight] // Custom format
+                });
+
+                // 5. ADD IMAGE
+                const imgData = canvas.toDataURL('image/jpeg', 0.95); // Slightly compressed JPEG for size
+                doc.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+
+                // 6. RE-ADD LINKS (Solves Broken Buttons Issue)
+                const links = document.querySelectorAll('a[href]');
+                
+                links.forEach(link => {
+                    const rect = link.getBoundingClientRect();
+                    
+                    // Filter out hidden or zero-size links
+                    // Also check if link is inside the hidden sections (navLinks or heroButtons)
+                    // We can check opacity of parent, or just visual check
+                    const computedStyle = window.getComputedStyle(link);
+                    if (computedStyle.opacity === '0' || computedStyle.display === 'none' || computedStyle.visibility === 'hidden') {
+                        return; // Skip hidden links
+                    }
+                    // Explicit check for parents if opacity is inherited
+                    if (navLinks.contains(link) || heroButtons.contains(link)) {
+                         return;
+                    }
+
+                    if (rect.width > 0 && rect.height > 0) {
+                        // Calculate coordinates relative to the top of the document
+                        const x = (rect.left + window.scrollX) * (pdfWidth / document.documentElement.scrollWidth);
+                        const y = (rect.top + window.scrollY) * (pdfWidth / document.documentElement.scrollWidth);
+                        const w = rect.width * (pdfWidth / document.documentElement.scrollWidth);
+                        const h = rect.height * (pdfWidth / document.documentElement.scrollWidth);
+
+                        // Add the link to PDF
+                        doc.link(x, y, w, h, { url: link.href });
+                    }
+                });
+
+                // 7. Save
+                doc.save('Portfolio_Kamal_Aliev.pdf');
+
+            } catch (error) {
+                console.error("PDF Generation Error:", error);
+                alert("Ошибка генерации. Проверьте консоль.");
+            } finally {
+                // 8. Restore UI INSTANTLY
+                navbar.className = originalNavClass;
+                btn.style.visibility = 'visible';
+                icon.className = originalIconClass;
+                btn.disabled = false;
+                
+                // Restore Opacity
+                navLinks.style.opacity = '1';
+                heroButtons.style.opacity = '1';
+                
+                // Restore Gradient
+                heroTitle.style.cssText = originalGradientStyle;
+                heroTitle.style.background = ''; // Clear inline override
+                heroTitle.style.webkitTextFillColor = '';
+                heroTitle.style.color = '';
+            }
+        }
+    </script>
+</body>
+</html>
