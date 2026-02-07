@@ -362,32 +362,38 @@
 
     <!-- Скрипт для скрытия выпадающего меню после клика -->
    <!-- Скрипт для авто-скрытия меню на мобильных -->
+<!-- Исправленный скрипт для меню -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Находим все ссылки внутри обоих меню (десктоп и мобилка)
-            const links = document.querySelectorAll('#pdf-download-menu a, #pdf-download-menu-mobile a');
-            
-            links.forEach(link => {
-                link.addEventListener('click', function() {
-                    // 1. Находим само выпадающее окно (соседний элемент или внутри группы)
-                    const group = this.closest('.group');
-                    const menuContent = group.querySelector('div.absolute');
-                    const button = group.querySelector('button');
+            // Список ID наших меню (десктоп и мобилка)
+            const menuIds = ['#pdf-download-menu', '#pdf-download-menu-mobile'];
 
-                    // 2. Снимаем фокус (убирает состояние :focus-within)
-                    if (button) button.blur();
-                    this.blur();
+            menuIds.forEach(id => {
+                const root = document.querySelector(id);
+                if (!root) return;
 
-                    // 3. ЖЕСТКИЙ ХАК: Временно удаляем меню из потока отображения
-                    // Это гарантированно сбрасывает "залипший" :hover на мобильных
-                    if (menuContent) {
+                const button = root.querySelector('button');
+                const menuContent = root.querySelector('div.absolute');
+                const links = root.querySelectorAll('a');
+
+                // Функция "разблокировки" меню (возвращаем как было в CSS)
+                const resetMenu = () => {
+                    menuContent.style.display = ''; 
+                };
+
+                // 1. При попытке открыть меню снова (клик или тап по иконке) - убираем скрытие
+                button.addEventListener('click', resetMenu);
+                button.addEventListener('touchstart', resetMenu, { passive: true });
+                root.addEventListener('mouseenter', resetMenu); // Для десктопа
+
+                // 2. При клике на ссылку скачивания
+                links.forEach(link => {
+                    link.addEventListener('click', () => {
+                        // Жестко скрываем меню
                         menuContent.style.display = 'none';
-                        
-                        // Возвращаем возможность открытия через 100мс
-                        setTimeout(() => {
-                            menuContent.style.display = '';
-                        }, 100);
-                    }
+                        // Снимаем фокус с кнопки, чтобы убрать CSS-состояния
+                        button.blur();
+                    });
                 });
             });
         });
@@ -395,6 +401,7 @@
 
 </body>
 </html>
+
 
 
 
