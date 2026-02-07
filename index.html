@@ -79,7 +79,7 @@
                     <span class="text-pyblue">&lt;</span>Daicha<span class="text-kotpurple">/&gt;</span>
                 </div>
                 <div class="hidden md:flex items-center">
-                    <!-- Добавил ID для скрытия при PDF -->
+                    <!-- ID для JS -->
                     <div id="nav-links" class="ml-10 flex items-baseline space-x-8 nav-links-container">
                         <a href="#about" class="hover:text-white px-3 py-2 rounded-md text-sm font-medium text-gray-300 transition-colors">Главная</a>
                         <a href="#stack" class="hover:text-white px-3 py-2 rounded-md text-sm font-medium text-gray-300 transition-colors">Стек</a>
@@ -88,14 +88,13 @@
                         <a href="#contact" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">Контакты</a>
                     </div>
                     
-                    <!-- КНОПКА PDF (Генерация) -->
-                    <button onclick="generatePDF()" id="pdfBtn" class="pdf-btn ml-6 w-12 h-12 rounded-full bg-red-600 hover:bg-red-700 text-white flex flex-col items-center justify-center transition-all shadow-lg hover:scale-110 hover:shadow-red-500/30 group relative" title="Скачать PDF">
-                        <i id="pdfIcon" class="fas fa-file-pdf text-lg mb-[2px] group-hover:-translate-y-0.5 transition-transform"></i>
-                        <span class="text-[9px] font-black leading-none font-mono">PDF</span>
+                    <!-- КНОПКА PDF (Только иконка) -->
+                    <button onclick="generatePDF()" id="pdfBtn" class="pdf-btn ml-6 w-10 h-10 rounded-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center transition-all shadow-lg hover:scale-110 hover:shadow-red-500/30 group relative" title="Скачать PDF">
+                        <i id="pdfIcon" class="fas fa-file-pdf text-lg"></i>
                         
                         <!-- Tooltip -->
-                        <div class="absolute top-14 right-0 w-32 p-2 bg-gray-800 text-xs text-gray-200 rounded shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none text-center border border-gray-700 z-50">
-                            Скачать файл
+                        <div class="absolute top-12 right-0 w-32 p-2 bg-gray-800 text-xs text-gray-200 rounded shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none text-center border border-gray-700 z-50">
+                            Скачать резюме
                         </div>
                     </button>
 
@@ -116,7 +115,6 @@
                     Алиев Кямал
                 </h1>
                 <h2 class="text-3xl md:text-4xl font-bold mb-6">
-                    <!-- Добавил ID для JS манипуляций -->
                     <span id="hero-title-text" class="gradient-text">Full-Stack Developer</span>
                 </h2>
                 <p class="mt-4 text-xl text-gray-400 max-w-2xl leading-relaxed">
@@ -335,19 +333,19 @@
     <footer id="contact" class="py-12 border-t border-gray-800 text-center">
         <div class="max-w-4xl mx-auto px-4">
             <h2 class="text-2xl font-bold text-white mb-8">Связаться со мной</h2>
-            <div class="flex justify-center gap-8 mb-8">
+            <div class="flex justify-center gap-6 mb-8">
                 <!-- Telegram -->
-                <a href="https://t.me/daichitakedakz" target="_blank" class="w-20 h-20 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-blue-500 hover:text-white transition-all text-4xl shadow-lg border border-gray-700 hover:scale-110">
+                <a href="https://t.me/daichitakedakz" target="_blank" class="w-14 h-14 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-blue-500 hover:text-white transition-all text-2xl shadow-lg border border-gray-700 hover:scale-110">
                     <i class="fab fa-telegram-plane"></i>
                 </a>
                 
                 <!-- WhatsApp -->
-                <a href="https://wa.me/+77012439738" target="_blank" class="w-20 h-20 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-green-500 hover:text-white transition-all text-4xl shadow-lg border border-gray-700 hover:scale-110">
+                <a href="https://wa.me/+77012439738" target="_blank" class="w-14 h-14 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-green-500 hover:text-white transition-all text-2xl shadow-lg border border-gray-700 hover:scale-110">
                     <i class="fab fa-whatsapp"></i>
                 </a>
 
                 <!-- Email -->
-                <a href="mailto:daichaapps@gmail.com" class="w-20 h-20 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-red-500 hover:text-white transition-all text-4xl shadow-lg border border-gray-700 hover:scale-110">
+                <a href="mailto:daichaapps@gmail.com" class="w-14 h-14 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-red-500 hover:text-white transition-all text-2xl shadow-lg border border-gray-700 hover:scale-110">
                     <i class="fas fa-envelope"></i>
                 </a>
             </div>
@@ -357,20 +355,20 @@
         </div>
     </footer>
 
-    <!-- PDF Generation Logic (HYBRID APPROACH: Image + Link Overlays) -->
+    <!-- PDF Generation Logic -->
     <script>
         window.jsPDF = window.jspdf.jsPDF;
 
         async function generatePDF() {
             const btn = document.getElementById('pdfBtn');
             const icon = document.getElementById('pdfIcon');
-            const originalIconClass = icon.className;
             const navbar = document.getElementById('navbar');
             const navLinks = document.getElementById('nav-links'); // Меню ссылок
             const body = document.body;
             const heroTitle = document.getElementById('hero-title-text');
 
             // 1. UI Feedback: Show Spinner
+            const originalIconClass = icon.className;
             icon.className = 'fas fa-spinner fa-spin text-lg';
             btn.disabled = true;
 
@@ -425,11 +423,7 @@
                 doc.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
 
                 // 6. RE-ADD LINKS (Solves Broken Buttons Issue)
-                // We find every <a> tag and place a clickable transparent rect over it in the PDF
                 const links = document.querySelectorAll('a[href]');
-                
-                // Since links in the nav are hidden, we don't need to filter them explicitly, 
-                // but getBoundingClientRect might return 0 size if hidden, so the check below handles it.
                 
                 links.forEach(link => {
                     const rect = link.getBoundingClientRect();
@@ -437,7 +431,6 @@
                     // Filter out hidden or zero-size links
                     if (rect.width > 0 && rect.height > 0) {
                         // Calculate coordinates relative to the top of the document
-                        // Since we scrolled to top (0,0) before capture, getBoundingClientRect + window.scrollY is accurate
                         const x = (rect.left + window.scrollX) * (pdfWidth / document.documentElement.scrollWidth);
                         const y = (rect.top + window.scrollY) * (pdfWidth / document.documentElement.scrollWidth);
                         const w = rect.width * (pdfWidth / document.documentElement.scrollWidth);
@@ -455,14 +448,14 @@
                 console.error("PDF Generation Error:", error);
                 alert("Ошибка генерации. Проверьте консоль.");
             } finally {
-                // 8. Restore UI
+                // 8. Restore UI INSTANTLY
                 navbar.className = originalNavClass;
                 btn.style.visibility = 'visible';
                 icon.className = originalIconClass;
                 btn.disabled = false;
                 
-                // Restore Nav Links
-                navLinks.style.display = 'flex'; // Or whatever it was ('flex' in tailwind classes)
+                // Restore Nav Links (Flex is the class used by Tailwind for 'md:flex')
+                navLinks.style.display = ''; // Empty string reverts to CSS stylesheet value
                 
                 // Restore Gradient
                 heroTitle.style.cssText = originalGradientStyle;
