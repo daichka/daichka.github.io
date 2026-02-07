@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Portfolio | Алиев Кямал</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -32,16 +32,25 @@
         }
     </script>
     <style>
-        body {
+        /* ГЛАВНЫЙ ФИКС ГОРИЗОНТАЛЬНОЙ ПРОКРУТКИ */
+        html, body {
+            overflow-x: hidden !important;
+            max-width: 100vw !important;
+            width: 100%;
+            margin: 0;
+            padding: 0;
             background-color: #0f172a;
             color: #e2e8f0;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
-            /* ГЛАВНЫЙ ФИКС: Запрет горизонтальной прокрутки */
-            overflow-x: hidden; 
-            position: relative;
-            width: 100%;
         }
+        
+        /* Гарантируем, что ни один элемент не будет шире экрана */
+        * {
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
         .tech-tag {
             transition: all 0.3s ease;
         }
@@ -70,7 +79,6 @@
             transform: scale(1.05);
         }
         
-        /* Специальный класс для кнопок, чтобы текст был по центру в PDF */
         .btn-center {
             display: inline-flex;
             align-items: center;
@@ -84,21 +92,20 @@
     <!-- Navigation -->
     <nav id="navbar" class="fixed w-full z-50 bg-darkbg/90 backdrop-blur-md border-b border-gray-800">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
+            <div class="flex items-center justify-between h-16 w-full">
                 <!-- Логотип -->
                 <div class="flex-shrink-0 font-mono font-bold text-xl tracking-tighter">
                     <span class="text-pyblue">&lt;</span>Daicha<span class="text-kotpurple">/&gt;</span>
                 </div>
 
-                <!-- МОБИЛЬНАЯ КНОПКА PDF (Исправленная) -->
-                <div class="flex md:hidden items-center">
+                <!-- МОБИЛЬНАЯ КНОПКА PDF -->
+                <div class="flex md:hidden items-center ml-auto"> <!-- ml-auto прижимает вправо -->
                     <div id="pdf-download-menu-mobile" class="relative group">
-                        <!-- Кнопка без лишних трансформаций -->
                         <button class="w-10 h-10 rounded-full bg-red-600 active:bg-red-700 text-white flex items-center justify-center transition-colors shadow-md">
                             <i class="fas fa-file-pdf text-lg"></i>
                         </button>
                         
-                        <!-- Выпадающее меню (Без transform origin, чтобы не дергало экран) -->
+                        <!-- Выпадающее меню -->
                         <div class="absolute right-0 top-12 w-48 bg-gray-800 border border-gray-700 rounded-lg shadow-xl invisible opacity-0 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 transition-opacity duration-200 z-50 overflow-hidden">
                             <div class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-900/50">
                                 Скачать резюме
@@ -129,7 +136,6 @@
                             <i class="fas fa-file-pdf text-lg"></i>
                         </button>
                         
-                        <!-- Выпадающее меню -->
                         <div class="absolute right-0 top-12 w-48 bg-gray-800 border border-gray-700 rounded-lg shadow-xl invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all transform origin-top-right z-50 overflow-hidden">
                             <div class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-900/50">
                                 Скачать резюме
@@ -149,7 +155,7 @@
     </nav>
 
     <!-- Hero Section -->
-    <section id="about" class="pt-32 pb-20 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
+    <section id="about" class="pt-32 pb-20 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto overflow-hidden"> <!-- overflow-hidden для безопасности -->
         <div class="text-center md:text-left md:flex md:items-center md:justify-between">
             <div class="md:w-2/3">
                 <div class="inline-flex items-center px-3 py-1 rounded-full border border-gray-700 bg-gray-800/50 text-xs font-medium text-cyan-400 mb-6">
@@ -207,7 +213,6 @@
             </h2>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                
                 <!-- Backend & Web -->
                 <div class="bg-cardbg rounded-2xl p-6 border border-gray-800 hover:border-pyblue/50 transition-colors">
                     <div class="flex items-center gap-3 mb-4">
@@ -224,7 +229,6 @@
                         <span class="tech-tag px-2 py-1 bg-gray-800 text-cyan-300 text-xs rounded border border-gray-700">Docker</span>
                     </div>
                 </div>
-
                 <!-- Mobile Android -->
                 <div class="bg-cardbg rounded-2xl p-6 border border-gray-800 hover:border-kotpurple/50 transition-colors">
                     <div class="flex items-center gap-3 mb-4">
@@ -240,7 +244,6 @@
                         <span class="tech-tag px-2 py-1 bg-gray-800 text-purple-300 text-xs rounded border border-gray-700">MVVM / Clean</span>
                     </div>
                 </div>
-
                 <!-- Scripts & Tools -->
                 <div class="bg-cardbg rounded-2xl p-6 border border-gray-800 hover:border-red-500/50 transition-colors">
                     <div class="flex items-center gap-3 mb-4">
@@ -256,13 +259,12 @@
                         <span class="tech-tag px-2 py-1 bg-gray-800 text-pink-300 text-xs rounded border border-gray-700">Celery + Redis</span>
                     </div>
                 </div>
-
             </div>
         </div>
     </section>
 
-    <!-- Google Play Section (Вернули Grid, Блюр и Иконки) -->
-    <section id="apps" class="py-20 relative overflow-visible"> <!-- overflow-visible важно! -->
+    <!-- Google Play Section (Вернули overflow-hidden, чтобы зеленый шар не растягивал страницу) -->
+    <section id="apps" class="py-20 relative overflow-hidden">
         <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-green-500/5 rounded-full blur-[120px] pointer-events-none"></div>
 
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
