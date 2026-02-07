@@ -353,7 +353,7 @@
         </div>
     </footer>
 
-    <!-- PDF Generation Logic -->
+    <!-- PDF Generation Logic (HYBRID APPROACH: Image + Link Overlays) -->
     <script>
         window.jsPDF = window.jspdf.jsPDF;
 
@@ -362,60 +362,87 @@
             const icon = document.getElementById('pdfIcon');
             const originalIconClass = icon.className;
             const navbar = document.getElementById('navbar');
+            const body = document.body;
 
-            // 1. Show Loading State
+            // 1. UI Feedback: Show Spinner
             icon.className = 'fas fa-spinner fa-spin text-lg';
             btn.disabled = true;
 
             try {
-                // 2. Setup jsPDF options
-                // A4 size in px (at 72dpi) is roughly 595 width. 
-                // We render the HTML at desktop width (1200px) and scale it down to fit the PDF.
-                const doc = new jsPDF({
-                    orientation: 'p',
-                    unit: 'px',
-                    format: 'a4',
-                    hotfixes: ['px_scaling']
-                });
-
-                // 3. Temporarily fix Navbar for capture (remove 'fixed' so it doesn't float weirdly in PDF)
+                // 2. Prepare Viewport
+                // Temporarily hide the PDF button from the screenshot
+                btn.style.visibility = 'hidden';
+                
+                // Fix Navbar for capture (absolute position instead of fixed)
                 const originalNavClass = navbar.className;
                 navbar.classList.remove('fixed');
                 navbar.classList.add('absolute');
                 
-                // Hide the PDF button itself in the PDF
-                btn.style.visibility = 'hidden';
+                // Scroll to top to ensure clean capture
+                window.scrollTo(0, 0);
 
-                // 4. Generate PDF using the .html() method (preserves links!)
-                await doc.html(document.body, {
-                    callback: function(doc) {
-                        doc.save('portfolio_kamal.pdf');
-                        
-                        // 5. Restore UI
-                        navbar.className = originalNavClass;
-                        btn.style.visibility = 'visible';
-                        icon.className = originalIconClass;
-                        btn.disabled = false;
-                    },
-                    x: 0,
-                    y: 0,
-                    width: 790, // Target width in PDF (A4 is approx 794px at 96dpi)
-                    windowWidth: 1280, // Render the site as if it's on a 1280px screen
-                    html2canvas: {
-                        scale: 0.62, // Scale factor: 790 / 1280 ≈ 0.62
-                        useCORS: true, // IMPORTANT: Allows loading external images (Google Play icons)
-                        logging: false,
-                        letterRendering: true
+                // 3. CAPTURE SCREENSHOT (Solves Cyrillic/Font Issues)
+                const canvas = await html2canvas(body, {
+                    useCORS: true,       // Load cross-origin images (Google Play)
+                    allowTaint: true,
+                    scale: 2,            // Retina quality
+                    logging: false,
+                    scrollY: 0,
+                    windowWidth: document.documentElement.scrollWidth, // Full width
+                    windowHeight: document.documentElement.scrollHeight // Full height
+                });
+
+                // 4. SETUP PDF
+                // We create a PDF that matches the aspect ratio of the site content
+                // A4 Width is approx 595.28 pt. We map the canvas width to this.
+                const pdfWidth = 595.28; 
+                const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+                
+                // Create single long page PDF
+                const doc = new jsPDF({
+                    orientation: 'p',
+                    unit: 'pt',
+                    format: [pdfWidth, pdfHeight] // Custom format
+                });
+
+                // 5. ADD IMAGE
+                const imgData = canvas.toDataURL('image/jpeg', 0.95); // Slightly compressed JPEG for size
+                doc.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+
+                // 6. RE-ADD LINKS (Solves Broken Buttons Issue)
+                // We find every <a> tag and place a clickable transparent rect over it in the PDF
+                const links = document.querySelectorAll('a[href]');
+                const scaleFactor = pdfWidth / canvas.width * 2; // *2 because html2canvas scale is 2
+
+                links.forEach(link => {
+                    const rect = link.getBoundingClientRect();
+                    
+                    // Filter out hidden or zero-size links
+                    if (rect.width > 0 && rect.height > 0) {
+                        // Calculate coordinates relative to the top of the document
+                        // Since we scrolled to top (0,0) before capture, getBoundingClientRect + window.scrollY is accurate
+                        const x = (rect.left + window.scrollX) * (pdfWidth / document.documentElement.scrollWidth);
+                        const y = (rect.top + window.scrollY) * (pdfWidth / document.documentElement.scrollWidth);
+                        const w = rect.width * (pdfWidth / document.documentElement.scrollWidth);
+                        const h = rect.height * (pdfWidth / document.documentElement.scrollWidth);
+
+                        // Add the link to PDF
+                        doc.link(x, y, w, h, { url: link.href });
                     }
                 });
 
+                // 7. Save
+                doc.save('Portfolio_Kamal_Aliev.pdf');
+
             } catch (error) {
                 console.error("PDF Generation Error:", error);
-                alert("Ошибка при создании PDF. Попробуйте еще раз.");
+                alert("Ошибка генерации. Проверьте консоль.");
+            } finally {
+                // 8. Restore UI
+                navbar.className = originalNavClass;
+                btn.style.visibility = 'visible';
                 icon.className = originalIconClass;
                 btn.disabled = false;
-                navbar.className = "fixed w-full z-50 bg-darkbg/90 backdrop-blur-md border-b border-gray-800";
-                btn.style.visibility = 'visible';
             }
         }
     </script>
