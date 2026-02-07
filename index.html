@@ -320,7 +320,7 @@
                         <div class="absolute -left-[5px] top-2 w-3 h-3 bg-gray-600 rounded-full"></div>
                         <h3 class="text-lg font-bold text-white mb-1">SMM Платформа Автоматизации</h3>
                         <p class="text-sm text-purple-400 mb-2 font-mono">Python, Redis, Telethon</p>
-                        <p class="text-gray-400">Масштабируемая система для управления активностью в соцсетях.</p>
+                        <p class="text-gray-400">Масштабируемая система для управления активностью в соцсетях. Бэкенд управляет сотнями аккаунтов.</p>
                     </div>
                     <div class="relative pl-8">
                         <div class="absolute -left-[5px] top-2 w-3 h-3 bg-gray-600 rounded-full"></div>
@@ -362,10 +362,24 @@
     <!-- Скрипт для скрытия выпадающего меню после клика -->
     <script>
         document.querySelectorAll('#pdf-download-menu a, #pdf-download-menu-mobile a').forEach(link => {
-            link.addEventListener('click', () => {
-                // Снимаем фокус с активного элемента, чтобы закрыть меню
-                if (document.activeElement) {
-                    document.activeElement.blur();
+            link.addEventListener('click', function() {
+                // Снимаем фокус с ссылки
+                this.blur();
+                
+                // Находим кнопку, которая открыла меню (предыдущий элемент в группе) и снимаем фокус с неё тоже
+                const group = this.closest('.group');
+                const button = group.querySelector('button');
+                if (button) button.blur();
+
+                // Хак для сброса "липкого" hover на мобильных устройствах
+                const menuContent = group.querySelector('div.absolute');
+                if (menuContent) {
+                    // Принудительно скрываем
+                    menuContent.style.display = 'none';
+                    // Возвращаем как было через 50мс (этого хватит, чтобы браузер понял, что ховера нет)
+                    setTimeout(() => {
+                        menuContent.style.display = '';
+                    }, 50);
                 }
             });
         });
