@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <p>new</p>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portfolio | Алиев Кямал</title>
@@ -55,10 +54,12 @@
             transform: translateY(-5px);
             border-color: #3b82f6;
         }
+        /* Градиентный текст */
         .gradient-text {
             background: linear-gradient(to right, #38bdf8, #818cf8, #c084fc);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
         .app-icon {
             transition: transform 0.3s ease;
@@ -78,7 +79,8 @@
                     <span class="text-pyblue">&lt;</span>Daicha<span class="text-kotpurple">/&gt;</span>
                 </div>
                 <div class="hidden md:flex items-center">
-                    <div class="ml-10 flex items-baseline space-x-8 nav-links-container">
+                    <!-- Добавил ID для скрытия при PDF -->
+                    <div id="nav-links" class="ml-10 flex items-baseline space-x-8 nav-links-container">
                         <a href="#about" class="hover:text-white px-3 py-2 rounded-md text-sm font-medium text-gray-300 transition-colors">Главная</a>
                         <a href="#stack" class="hover:text-white px-3 py-2 rounded-md text-sm font-medium text-gray-300 transition-colors">Стек</a>
                         <a href="#apps" class="hover:text-white px-3 py-2 rounded-md text-sm font-medium text-gray-300 transition-colors">Google Play</a>
@@ -114,7 +116,8 @@
                     Алиев Кямал
                 </h1>
                 <h2 class="text-3xl md:text-4xl font-bold mb-6">
-                    <span class="gradient-text">Full-Stack Developer</span>
+                    <!-- Добавил ID для JS манипуляций -->
+                    <span id="hero-title-text" class="gradient-text">Full-Stack Developer</span>
                 </h2>
                 <p class="mt-4 text-xl text-gray-400 max-w-2xl leading-relaxed">
                     Python & Kotlin разработчик с 3-летним опытом. Создаю сложные backend-системы, веб-инструменты автоматизации и нативные мобильные приложения. 
@@ -331,20 +334,20 @@
     <!-- Footer -->
     <footer id="contact" class="py-12 border-t border-gray-800 text-center">
         <div class="max-w-4xl mx-auto px-4">
-            <h2 class="text-2xl font-bold text-white mb-6">Связаться со мной</h2>
-            <div class="flex justify-center gap-6 mb-8">
+            <h2 class="text-2xl font-bold text-white mb-8">Связаться со мной</h2>
+            <div class="flex justify-center gap-8 mb-8">
                 <!-- Telegram -->
-                <a href="https://t.me/daichitakedakz" target="_blank" class="w-14 h-14 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-blue-500 hover:text-white transition-all text-2xl shadow-lg border border-gray-700">
+                <a href="https://t.me/daichitakedakz" target="_blank" class="w-20 h-20 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-blue-500 hover:text-white transition-all text-4xl shadow-lg border border-gray-700 hover:scale-110">
                     <i class="fab fa-telegram-plane"></i>
                 </a>
                 
                 <!-- WhatsApp -->
-                <a href="https://wa.me/+77012439738" target="_blank" class="w-14 h-14 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-green-500 hover:text-white transition-all text-2xl shadow-lg border border-gray-700">
+                <a href="https://wa.me/+77012439738" target="_blank" class="w-20 h-20 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-green-500 hover:text-white transition-all text-4xl shadow-lg border border-gray-700 hover:scale-110">
                     <i class="fab fa-whatsapp"></i>
                 </a>
 
                 <!-- Email -->
-                <a href="mailto:daichaapps@gmail.com" class="w-14 h-14 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-red-500 hover:text-white transition-all text-2xl shadow-lg border border-gray-700">
+                <a href="mailto:daichaapps@gmail.com" class="w-20 h-20 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-red-500 hover:text-white transition-all text-4xl shadow-lg border border-gray-700 hover:scale-110">
                     <i class="fas fa-envelope"></i>
                 </a>
             </div>
@@ -363,7 +366,9 @@
             const icon = document.getElementById('pdfIcon');
             const originalIconClass = icon.className;
             const navbar = document.getElementById('navbar');
+            const navLinks = document.getElementById('nav-links'); // Меню ссылок
             const body = document.body;
+            const heroTitle = document.getElementById('hero-title-text');
 
             // 1. UI Feedback: Show Spinner
             icon.className = 'fas fa-spinner fa-spin text-lg';
@@ -373,6 +378,15 @@
                 // 2. Prepare Viewport
                 // Temporarily hide the PDF button from the screenshot
                 btn.style.visibility = 'hidden';
+                
+                // Hide Nav Links (buttons) for PDF
+                navLinks.style.display = 'none';
+
+                // FIX GRADIENT TEXT (remove gradient for capture)
+                const originalGradientStyle = heroTitle.style.cssText;
+                heroTitle.style.background = 'none';
+                heroTitle.style.webkitTextFillColor = '#818cf8'; // Solid color fallback
+                heroTitle.style.color = '#818cf8';
                 
                 // Fix Navbar for capture (absolute position instead of fixed)
                 const originalNavClass = navbar.className;
@@ -413,8 +427,10 @@
                 // 6. RE-ADD LINKS (Solves Broken Buttons Issue)
                 // We find every <a> tag and place a clickable transparent rect over it in the PDF
                 const links = document.querySelectorAll('a[href]');
-                const scaleFactor = pdfWidth / canvas.width * 2; // *2 because html2canvas scale is 2
-
+                
+                // Since links in the nav are hidden, we don't need to filter them explicitly, 
+                // but getBoundingClientRect might return 0 size if hidden, so the check below handles it.
+                
                 links.forEach(link => {
                     const rect = link.getBoundingClientRect();
                     
@@ -444,10 +460,17 @@
                 btn.style.visibility = 'visible';
                 icon.className = originalIconClass;
                 btn.disabled = false;
+                
+                // Restore Nav Links
+                navLinks.style.display = 'flex'; // Or whatever it was ('flex' in tailwind classes)
+                
+                // Restore Gradient
+                heroTitle.style.cssText = originalGradientStyle;
+                heroTitle.style.background = ''; // Clear inline override
+                heroTitle.style.webkitTextFillColor = '';
+                heroTitle.style.color = '';
             }
         }
     </script>
 </body>
 </html>
-
-
